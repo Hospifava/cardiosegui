@@ -1,0 +1,6 @@
+# Encabezados de seguridad básicos para todas las páginas de CardioSegui.
+# Netlify lee este archivo al publicar (también con Netlify Drop) y no lo muestra como página.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
