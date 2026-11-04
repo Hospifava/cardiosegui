@@ -8,6 +8,14 @@
   <meta name="description" content="CardioSegui: seguimiento para pacientes cardiológicos del Hospital Dr. René Favaloro. Riesgo cardiovascular, medicación y rehabilitación.">
   <!-- Ícono de la pestaña (corazón con latido), en SVG dentro del mismo archivo -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e73be' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z'/%3E%3Cpath d='M3.5 12h4l2-3 3 6 2-3h6'/%3E%3C/svg%3E">
+  <!-- PWA: datos de instalación (nombre, íconos, colores) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <!-- iPhone/iPad: ícono y nombre al "Agregar a pantalla de inicio" -->
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="CardioSegui">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>CardioSegui</title>
 
   <style>
@@ -2093,6 +2101,19 @@
       }
       mostrarResultado(d, guardado.fecha);
     })();
+
+
+    // =========================================================
+    // 10. PWA: registra el service worker (funcionamiento sin conexión)
+    // Solo funciona en https (Netlify) o en localhost; abierto como archivo no hace nada.
+    // =========================================================
+    if ("serviceWorker" in navigator && window.isSecureContext && location.protocol !== "file:") {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(error => {
+          console.warn("No se pudo activar el modo sin conexión:", error);
+        });
+      });
+    }
   </script>
 </body>
 </html>
