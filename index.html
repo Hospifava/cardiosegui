@@ -490,6 +490,45 @@
 
     .fuente { margin-top: 18px; font-size: 13px; color: var(--texto-suave); line-height: 1.45; }
 
+    /* Peso y altura, uno al lado del otro */
+    .fila-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Casilla "No sé mi colesterol" */
+    .check-linea {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 54px;
+      margin: -6px 0 18px;
+      padding: 0 14px;
+      border: 2px dashed var(--borde);
+      border-radius: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .check-linea input { width: 24px; height: 24px; accent-color: var(--primario); flex-shrink: 0; }
+    .pista-check { margin: -10px 0 18px; }
+
+    .imc-linea {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--fondo);
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .nota-modelo {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-left: 5px solid var(--ambar);
+      border-radius: 12px;
+      background: #fff8e6;
+      color: #5c4300;
+      font-size: 15px;
+    }
+
     /* =========================================================
        4d. MI REHABILITACIÓN
        ========================================================= */
@@ -848,17 +887,39 @@
               </div>
             </fieldset>
 
+            <div class="fila-campos">
+              <label class="campo">
+                <span>Peso (kg)</span>
+                <!-- type="text" + inputmode="decimal": teclado numérico y acepta coma (75,5) -->
+                <input id="riesgo-peso" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 75">
+              </label>
+              <label class="campo">
+                <span>Altura (cm)</span>
+                <input id="riesgo-altura" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 168">
+              </label>
+            </div>
+
             <label class="campo">
               <span>Presión sistólica, la "máxima" (mmHg)</span>
               <input id="riesgo-pas" type="number" inputmode="numeric" min="80" max="250" placeholder="Ej: 130">
               <small class="pista">Si te dijeron "13 y 8", la máxima es 130.</small>
             </label>
 
-            <label class="campo">
+            <label class="campo" id="riesgo-colesterol-caja">
               <span>Colesterol total (mg/dL)</span>
               <input id="riesgo-colesterol" type="number" inputmode="numeric" min="80" max="400" placeholder="Ej: 200">
               <small class="pista">Figura en tu último análisis de sangre.</small>
             </label>
+
+            <!-- Si no sabe el colesterol, se usa el modelo de la OMS "sin laboratorio" (con el IMC) -->
+            <label class="check-linea">
+              <input type="checkbox" id="riesgo-sin-colesterol">
+              <span>No sé mi colesterol</span>
+            </label>
+            <p class="pista pista-check" id="riesgo-sin-colesterol-pista" hidden>
+              Vamos a usar tu peso y tu altura en lugar del colesterol. El resultado es menos preciso:
+              cuando tengas un análisis de sangre, volvé a calcularlo.
+            </p>
 
             <fieldset class="grupo">
               <legend>¿Fumás actualmente?</legend>
@@ -901,14 +962,21 @@
           <p class="resultado-explicacion" id="riesgo-explicacion"></p>
           <p class="resultado-fecha" id="riesgo-fecha"></p>
 
+          <!-- Índice de masa corporal (informativo) -->
+          <p class="imc-linea" id="riesgo-imc" hidden></p>
+
+          <!-- Aparece cuando se calculó sin colesterol -->
+          <div class="nota-modelo" id="riesgo-nota-modelo" hidden></div>
+
           <div class="consejos">
             <h4>Consejos para cuidar tu corazón</h4>
             <ul id="riesgo-consejos"></ul>
           </div>
 
           <p class="fuente">
-            <strong>Cómo se calcula:</strong> modelo de riesgo cardiovascular de la OMS (2019, versión con
-            laboratorio), ajustado para Sudamérica austral: Argentina, Chile y Uruguay.
+            <strong>Cómo se calcula:</strong> modelo de riesgo cardiovascular de la OMS (2019,
+            <span id="riesgo-modelo">versión con laboratorio</span>), ajustado para Sudamérica austral:
+            Argentina, Chile y Uruguay.
             Fuente: Kaptoge S. y col., <em>Lancet Global Health</em> 2019;7(10):e1332–e1345.
           </p>
         </div>
@@ -1637,7 +1705,7 @@
     // 9. MI RIESGO
     // =========================================================
 
-    // ---------- 9.1 Modelo de riesgo de la OMS 2019 (versión con laboratorio) ----------
+    // ---------- 9.1 Modelo de riesgo de la OMS 2019 (versiones con y sin laboratorio) ----------
     // Fuente: Kaptoge S, et al. World Health Organization cardiovascular disease risk charts:
     // revised models to estimate risk in 21 global regions. Lancet Glob Health 2019;7(10):e1332-e1345.
     // Coeficientes y parámetros de recalibración tomados del paquete WHORiskCalculator (CRAN),
@@ -1666,12 +1734,42 @@
       }
     };
 
+    // Versión "sin laboratorio": usa el IMC (centrado en 25) en lugar del colesterol, y no usa la diabetes
+    const OMS_COEFICIENTES_SIN_LAB = {
+      infarto: {
+        hombre: { edad: 0.073593,  imc: 0.0337219, pas: 0.0133937, fuma: 0.5954767,
+                  imcEdad: -0.0010432, pasEdad: -0.0001837, fumaEdad: -0.0200831, s0: 0.9544258 },
+        mujer:  { edad: 0.1049418, imc: 0.0257616, pas: 0.016726,  fuma: 1.093132,
+                  imcEdad: -0.0006537, pasEdad: -0.0001966, fumaEdad: -0.0343739, s0: 0.9887124 }
+      },
+      acv: {
+        hombre: { edad: 0.097674,  imc: 0.0159518, pas: 0.0227294, fuma: 0.4999862,
+                  imcEdad: -0.0003516, pasEdad: -0.0004374, fumaEdad: -0.0153895, s0: 0.9848260 },
+        mujer:  { edad: 0.1046105, imc: 0.0036406, pas: 0.0216741, fuma: 0.7399405,
+                  imcEdad: -0.0000129, pasEdad: -0.0005311, fumaEdad: -0.0203997, s0: 0.9885706 }
+      }
+    };
+
     // Recalibración para "Sudamérica austral" (Argentina, Chile, Uruguay), año 2017 — igual que las tablas de la OMS
     // [constante, pendiente]
     const OMS_CALIBRACION_ARGENTINA = {
       hombre: { infarto: [-0.2872235178947449, 0.8339170813560486], acv: [-1.013867974281311, 0.6555721163749695] },
       mujer:  { infarto: [0.01781981810927391, 0.9111283421516418], acv: [-0.9808573722839355, 0.6816636323928833] }
     };
+
+    const OMS_CALIBRACION_ARGENTINA_SIN_LAB = {
+      hombre: { infarto: [-0.2602369785308838, 0.9201200008392334], acv: [-1.0585994720458984, 0.6421895027160645] },
+      mujer:  { infarto: [0.042077235877513885, 0.9534010291099548], acv: [-0.8985329270362854, 0.6920236945152283] }
+    };
+
+    // Recalibra a la región y combina infarto + ACV (común a las dos versiones del modelo)
+    function combinarRiesgos(riesgoBase, sexo, calibracion) {
+      const recalibrar = evento => {
+        const [c, s] = calibracion[sexo][evento];
+        return 1 - Math.exp(-Math.exp(c + s * Math.log(-Math.log(1 - riesgoBase(evento)))));
+      };
+      return 1 - (1 - recalibrar("infarto")) * (1 - recalibrar("acv"));
+    }
 
     // datos: { edad, sexo: "hombre"|"mujer", pas (mmHg), colesterolMmol (mmol/L), fuma (bool), diabetes (bool) }
     // Devuelve el riesgo a 10 años como proporción (0 a 1)
@@ -1682,16 +1780,31 @@
       const fuma = datos.fuma ? 1 : 0;
       const dm   = datos.diabetes ? 1 : 0;
 
-      const riesgoDe = evento => {
+      const riesgoBase = evento => {
         const b = OMS_COEFICIENTES[evento][datos.sexo];
         const lp = b.edad * a + b.col * col + b.pas * pas + b.fuma * fuma + b.dm * dm
                  + b.colEdad * col * a + b.pasEdad * pas * a + b.fumaEdad * fuma * a + b.dmEdad * dm * a;
-        const base = 1 - Math.pow(b.s0, Math.exp(lp));
-        const [c, s] = calibracion[datos.sexo][evento];
-        return 1 - Math.exp(-Math.exp(c + s * Math.log(-Math.log(1 - base))));
+        return 1 - Math.pow(b.s0, Math.exp(lp));
       };
 
-      return 1 - (1 - riesgoDe("infarto")) * (1 - riesgoDe("acv"));
+      return combinarRiesgos(riesgoBase, datos.sexo, calibracion);
+    }
+
+    // Versión sin laboratorio. datos: { edad, sexo, pas, imc, fuma }
+    function riesgoOMSSinLaboratorio(datos, calibracion = OMS_CALIBRACION_ARGENTINA_SIN_LAB) {
+      const a    = datos.edad - 60;
+      const pas  = datos.pas - 120;
+      const imc  = datos.imc - 25;
+      const fuma = datos.fuma ? 1 : 0;
+
+      const riesgoBase = evento => {
+        const b = OMS_COEFICIENTES_SIN_LAB[evento][datos.sexo];
+        const lp = b.edad * a + b.imc * imc + b.pas * pas + b.fuma * fuma
+                 + b.imcEdad * imc * a + b.pasEdad * pas * a + b.fumaEdad * fuma * a;
+        return 1 - Math.pow(b.s0, Math.exp(lp));
+      };
+
+      return combinarRiesgos(riesgoBase, datos.sexo, calibracion);
     }
     // </calculo-oms>
 
@@ -1730,7 +1843,15 @@
       }
       consejos.push("Movete todos los días: caminar a paso ligero suma mucho. Hacelo según lo que te indique tu médico y registralo en «Mi rehabilitación».");
       consejos.push("Comé con poca sal y sumá frutas, verduras, legumbres y cereales integrales.");
-      consejos.push("Cuidá tu peso y evitá el exceso de alcohol.");
+      if (d.imc >= 25) {
+        consejos.push(`Tu IMC indica ${categoriaImc(d.imc)}: bajar de peso de a poco ayuda a bajar la presión y el colesterol. ` +
+                      "Pedí orientación a tu médico o a un nutricionista.");
+      } else if (d.imc && d.imc < 18.5) {
+        consejos.push("Tu peso está por debajo de lo recomendado: consultalo con tu médico.");
+      } else {
+        consejos.push("Mantené un peso saludable.");
+      }
+      consejos.push("Evitá el exceso de alcohol.");
       consejos.push("Si te indicaron medicamentos, tomalos todos los días. «Mi medicación» te ayuda a recordarlo.");
       return consejos;
     }
@@ -1745,6 +1866,29 @@
     const inputEdad      = document.getElementById("riesgo-edad");
     const inputPas       = document.getElementById("riesgo-pas");
     const inputColest    = document.getElementById("riesgo-colesterol");
+    const inputPeso      = document.getElementById("riesgo-peso");
+    const inputAltura    = document.getElementById("riesgo-altura");
+    const checkSinColest = document.getElementById("riesgo-sin-colesterol");
+
+    // "No sé mi colesterol": oculta el campo y muestra la explicación
+    function actualizarSinColesterol() {
+      document.getElementById("riesgo-colesterol-caja").hidden = checkSinColest.checked;
+      document.getElementById("riesgo-sin-colesterol-pista").hidden = !checkSinColest.checked;
+      errorRiesgo.textContent = "";
+    }
+    checkSinColest.addEventListener("change", actualizarSinColesterol);
+
+    // IMC = peso (kg) / altura (m)²
+    const calcularImc = (peso, alturaCm) => peso / Math.pow(alturaCm / 100, 2);
+
+    function categoriaImc(imc) {
+      if (imc < 18.5) return "bajo peso";
+      if (imc < 25)   return "peso saludable";
+      if (imc < 30)   return "sobrepeso";
+      return "obesidad";
+    }
+
+    const formatoDecimal = n => n.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
     // Respuestas de los botones Sí/No y Mujer/Hombre
     const respuestas = { previo: null, sexo: null, fuma: null, diabetes: null };
@@ -1779,23 +1923,36 @@
 
       const edad = leerNumero(inputEdad);
       const pas  = leerNumero(inputPas);
-      const colesterol = leerNumero(inputColest);
+      const peso = leerNumero(inputPeso);
+      let altura = leerNumero(inputAltura);
+      if (altura > 0 && altura < 3) altura = Math.round(altura * 100);   // escribió metros (1,68) → 168 cm
+      const sinColesterol = checkSinColest.checked;
+      const colesterol = sinColesterol ? null : leerNumero(inputColest);
 
       if (!Number.isFinite(edad)) return errorEn("Escribí tu edad.", inputEdad);
       if (edad < 40 || edad > 80) {
         return errorEn("Este cálculo sirve solo entre 40 y 80 años. Consultá con tu médico cómo evaluar tu riesgo.", inputEdad);
       }
       if (!respuestas.sexo) return errorEn("Elegí tu sexo.");
+      if (!Number.isFinite(peso)) return errorEn("Escribí tu peso.", inputPeso);
+      if (peso < 30 || peso > 250) return errorEn("Revisá el peso: tiene que estar entre 30 y 250 kg.", inputPeso);
+      if (!Number.isFinite(altura)) return errorEn("Escribí tu altura.", inputAltura);
+      if (altura < 120 || altura > 220) return errorEn("Revisá la altura: tiene que estar entre 120 y 220 cm.", inputAltura);
       if (!Number.isFinite(pas)) return errorEn("Escribí tu presión máxima.", inputPas);
       if (pas < 80 || pas > 250) return errorEn("Revisá la presión: tiene que estar entre 80 y 250 mmHg.", inputPas);
-      if (!Number.isFinite(colesterol)) return errorEn("Escribí tu colesterol total.", inputColest);
-      if (colesterol < 80 || colesterol > 400) {
-        return errorEn("Revisá el colesterol: tiene que estar entre 80 y 400 mg/dL.", inputColest);
+      if (!sinColesterol) {
+        if (!Number.isFinite(colesterol)) {
+          return errorEn("Escribí tu colesterol total, o marcá «No sé mi colesterol».", inputColest);
+        }
+        if (colesterol < 80 || colesterol > 400) {
+          return errorEn("Revisá el colesterol: tiene que estar entre 80 y 400 mg/dL.", inputColest);
+        }
       }
       if (!respuestas.fuma) return errorEn("Respondé si fumás.");
       if (!respuestas.diabetes) return errorEn("Respondé si tenés diabetes.");
 
-      return { previo: "no", edad, sexo: respuestas.sexo, pas, colesterol,
+      inputAltura.value = altura;
+      return { previo: "no", edad, sexo: respuestas.sexo, peso, altura, pas, sinColesterol, colesterol,
                fuma: respuestas.fuma, diabetes: respuestas.diabetes };
     }
 
@@ -1810,11 +1967,17 @@
         explicacion = "Como ya tuviste un evento cardiovascular, este cálculo no se aplica: tu riesgo se considera alto " +
                       "y tu seguimiento lo define tu cardiólogo.";
       } else {
-        const riesgo = riesgoOMS({
-          edad: d.edad, sexo: d.sexo, pas: d.pas,
-          colesterolMmol: d.colesterol / MG_DL_POR_MMOL,
-          fuma: d.fuma === "si", diabetes: d.diabetes === "si"
-        });
+        // Con colesterol → modelo con laboratorio. Sin colesterol → modelo sin laboratorio (usa el IMC)
+        const riesgo = d.sinColesterol
+          ? riesgoOMSSinLaboratorio({
+              edad: d.edad, sexo: d.sexo, pas: d.pas,
+              imc: calcularImc(d.peso, d.altura), fuma: d.fuma === "si"
+            })
+          : riesgoOMS({
+              edad: d.edad, sexo: d.sexo, pas: d.pas,
+              colesterolMmol: d.colesterol / MG_DL_POR_MMOL,
+              fuma: d.fuma === "si", diabetes: d.diabetes === "si"
+            });
         const porcentaje = Math.round(riesgo * 100);
         categoria = categoriaRiesgo(porcentaje);
         textoPorcentaje = porcentaje < 1 ? "<1 %" : `${porcentaje} %`;
@@ -1837,7 +2000,24 @@
       document.getElementById("riesgo-fecha").textContent =
         "Calculado el " + new Date(fecha + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
 
-      document.getElementById("riesgo-consejos").replaceChildren(...armarConsejos(d, categoria).map(texto => {
+      // IMC (solo informativo; los cálculos guardados antes de esta versión no tienen peso ni altura)
+      const imc = d.peso && d.altura ? calcularImc(d.peso, d.altura) : null;
+      const elImc = document.getElementById("riesgo-imc");
+      elImc.hidden = !imc;
+      if (imc) elImc.textContent = `Tu índice de masa corporal (IMC): ${formatoDecimal(imc)} · ${categoriaImc(imc)}`;
+
+      // Aviso de menor precisión cuando se calculó sin colesterol
+      const nota = document.getElementById("riesgo-nota-modelo");
+      nota.hidden = !d.sinColesterol || d.previo === "si";
+      nota.textContent = "Calculado sin colesterol, con tu peso y altura: es menos preciso. " +
+        (d.diabetes === "si"
+          ? "Como tenés diabetes, este resultado puede ser más bajo que tu riesgo real. "
+          : "") +
+        "Cuando tengas un análisis de sangre, volvé a calcularlo.";
+      document.getElementById("riesgo-modelo").textContent =
+        d.sinColesterol ? "versión sin laboratorio, que usa el IMC" : "versión con laboratorio";
+
+      document.getElementById("riesgo-consejos").replaceChildren(...armarConsejos({ ...d, imc }, categoria).map(texto => {
         const li = document.createElement("li");
         li.textContent = texto;
         return li;
@@ -1867,7 +2047,11 @@
       if (d.previo === "no") {
         inputEdad.value   = d.edad;
         inputPas.value    = d.pas;
-        inputColest.value = d.colesterol;
+        inputColest.value = d.colesterol ?? "";
+        inputPeso.value   = d.peso ?? "";
+        inputAltura.value = d.altura ?? "";
+        checkSinColest.checked = !!d.sinColesterol;
+        actualizarSinColesterol();
         elegirOpcion("sexo", d.sexo);
         elegirOpcion("fuma", d.fuma);
         elegirOpcion("diabetes", d.diabetes);
