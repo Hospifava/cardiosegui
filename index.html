@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover permite usar el área completa en celulares con "notch" -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>CardioSegui</title>
+
+  <style>
+    /* =========================================================
+       1. VARIABLES DE DISEÑO (colores, tamaños, sombras)
+       Cambiando estos valores se modifica el estilo de toda la app.
+       ========================================================= */
+    :root {
+      /* Paleta institucional del Hospital Dr. René Favaloro */
+      --marino:          #242c4f;   /* azul marino (texto del logo) */
+      --petroleo:        #0e5e88;   /* azul petróleo (franjas del sitio) */
+      --celeste:         #179ee3;   /* celeste (cruz del logo) */
+      --primario:        #1e73be;   /* azul de botones y acentos */
+      --primario-oscuro: #0e5e88;
+      --primario-claro:  #e6f1fb;   /* fondo de acentos */
+      --blanco:      #ffffff;
+      --fondo:       #f4f6f9;   /* fondo general, blanco azulado */
+      --texto:       #242c4f;
+      --texto-suave: #69727d;
+      --borde:       #e3e8ef;
+      --verde:       #2e9d6a;   /* toma tomada */
+      --naranja:     #c46a12;   /* toma atrasada */
+      --peligro:     #c0392b;   /* eliminar / errores */
+
+      --radio:       18px;
+      --sombra:      0 4px 18px rgba(36, 44, 79, 0.08);
+      --alto-nav:    76px;
+    }
+
+    /* =========================================================
+       2. BASE: reseteo y tipografía
+       ========================================================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+      font-size: 17px;               /* texto grande y legible */
+      line-height: 1.5;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Contenedor de la app: ocupa toda la pantalla del celular
+       y en una computadora se centra con ancho de celular */
+    .app {
+      max-width: 480px;
+      min-height: 100%;
+      margin: 0 auto;
+      background: var(--fondo);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================
+       3. ENCABEZADO
+       ========================================================= */
+    /* Franja blanca superior con el logo del hospital */
+    .barra-logo {
+      background: var(--blanco);
+      padding: calc(12px + env(safe-area-inset-top)) 18px 12px;
+      border-bottom: 4px solid var(--celeste);
+    }
+
+    .barra-logo img {
+      display: block;
+      width: 100%;
+      max-width: 340px;
+      height: auto;
+    }
+
+    /* Bloque azul con el nombre de la app y el título de la sección */
+    .encabezado {
+      background: linear-gradient(135deg, var(--marino), var(--petroleo));
+      color: var(--blanco);
+      padding: 20px 22px 26px;
+      border-radius: 0 0 28px 28px;
+      box-shadow: var(--sombra);
+    }
+
+    .marca {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      opacity: 0.95;
+    }
+
+    .marca svg { width: 26px; height: 26px; }
+
+    .encabezado h1 {
+      margin-top: 14px;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .encabezado p {
+      margin-top: 4px;
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    /* =========================================================
+       4. CONTENIDO Y SECCIONES
+       Solo la sección con la clase "activa" se muestra.
+       ========================================================= */
+    main {
+      flex: 1;
+      padding: 22px 18px calc(var(--alto-nav) + 28px + env(safe-area-inset-bottom));
+    }
+
+    .seccion { display: none; animation: aparecer 0.25s ease; }
+    .seccion.activa { display: block; }
+
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tarjeta de "Próximamente" */
+    .tarjeta {
+      background: var(--blanco);
+      border-radius: var(--radio);
+      box-shadow: var(--sombra);
+      padding: 34px 24px;
+      text-align: center;
+    }
+
+    .icono-grande {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: var(--primario-claro);
+      color: var(--primario);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icono-grande svg { width: 42px; height: 42px; }
+
+    .etiqueta {
+      display: inline-block;
+      background: var(--primario-claro);
+      color: var(--primario-oscuro);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    .tarjeta h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .tarjeta p {
+      color: var(--texto-suave);
+      font-size: 17px;
+    }
+
+    /* Botón grande (de ejemplo, pensado para el dedo) */
+    .boton {
+      display: block;
+      width: 100%;
+      min-height: 58px;
+      margin-top: 26px;
+      border: none;
+      border-radius: 16px;
+      background: var(--primario);
+      color: var(--blanco);
+      font-size: 18px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .boton:active   { transform: scale(0.98); background: var(--primario-oscuro); }
+    .boton:disabled { background: #d9e0ea; color: #7d879a; cursor: default; transform: none; }
+
+    /* Cualquier elemento con el atributo "hidden" queda oculto */
+    [hidden] { display: none !important; }
+
+    /* =========================================================
+       4b. MI MEDICACIÓN
+       ========================================================= */
+
+    /* Resumen del día: "3 de 5 tomas" + barra de progreso */
+    .resumen {
+      background: var(--blanco);
+      border-radius: var(--radio);
+      box-shadow: var(--sombra);
+      padding: 18px 20px;
+    }
+
+    .resumen-texto {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .resumen-texto span   { color: var(--texto-suave); font-weight: 600; }
+    .resumen-texto strong { font-size: 22px; }
+
+    .barra-progreso {
+      height: 10px;
+      margin-top: 10px;
+      background: var(--primario-claro);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .barra-progreso div {
+      height: 100%;
+      width: 0;
+      background: var(--verde);
+      border-radius: 999px;
+      transition: width 0.3s;
+    }
+
+    .fecha { margin-top: 8px; font-size: 15px; color: var(--texto-suave); }
+    .fecha::first-letter { text-transform: uppercase; }
+
+    .boton-agregar { margin-top: 16px; }
+
+    .titulo-lista {
+      margin: 26px 4px 10px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--texto-suave);
+    }
+
+    .lista {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Una toma del día (hora + medicamento + botón de tildar) */
+    .toma {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--blanco);
+      border-radius: 16px;
+      border-left: 6px solid var(--primario);
+      box-shadow: var(--sombra);
+      padding: 14px 14px 14px 16px;
+      transition: background 0.2s;
+    }
+
+    .toma-hora {
+      min-width: 62px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--marino);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .toma-info, .med-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .toma-info strong, .med-info strong { font-size: 18px; overflow-wrap: anywhere; line-height: 1.3; }
+    .toma-info span,   .med-info span   { font-size: 15px; color: var(--texto-suave); overflow-wrap: anywhere; }
+
+    .estado { font-style: normal; font-size: 13px; font-weight: 700; margin-top: 2px; }
+    .estado:empty { display: none; }
+
+    .toma.atrasada { border-left-color: var(--naranja); }
+    .toma.atrasada .estado { color: var(--naranja); }
+
+    .toma.tomada { border-left-color: var(--verde); background: #f2faf6; }
+    .toma.tomada .toma-hora,
+    .toma.tomada strong { color: var(--texto-suave); }
+    .toma.tomada .estado { color: var(--verde); }
+
+    /* Botón redondo grande para marcar la toma */
+    .check {
+      flex-shrink: 0;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 3px solid var(--borde);
+      background: var(--blanco);
+      color: var(--borde);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
+    }
+
+    .check svg { width: 30px; height: 30px; }
+    .check:active { transform: scale(0.92); }
+    .toma.tomada .check { background: var(--verde); border-color: var(--verde); color: var(--blanco); }
+
+    /* Lista "Mis medicamentos" */
+    .med {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--blanco);
+      border-radius: 16px;
+      box-shadow: var(--sombra);
+      padding: 14px 10px 14px 18px;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+    .chip {
+      background: var(--primario-claro);
+      color: var(--primario-oscuro);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    .boton-icono {
+      flex-shrink: 0;
+      width: 52px;
+      height: 52px;
+      border: none;
+      border-radius: 14px;
+      background: transparent;
+      color: var(--texto-suave);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .boton-icono svg { width: 24px; height: 24px; }
+    .boton-icono:active { background: #fdecea; color: var(--peligro); }
+    .boton-icono.editar:active { background: var(--primario-claro); color: var(--primario); }
+    .med .boton-icono { width: 48px; }
+
+    /* Mensaje cuando no hay medicamentos */
+    .vacio { margin-top: 16px; padding: 28px 24px; }
+    .vacio h2 { font-size: 20px; }
+
+    /* =========================================================
+       4c. FORMULARIO (hoja que sube desde abajo)
+       ========================================================= */
+    .hoja-fondo {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: rgba(36, 44, 79, 0.45);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      animation: aparecer-fondo 0.2s ease;
+    }
+
+    .hoja {
+      width: 100%;
+      max-width: 480px;
+      max-height: 92vh;
+      overflow-y: auto;
+      background: var(--blanco);
+      border-radius: 24px 24px 0 0;
+      padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+      animation: subir 0.25s ease;
+    }
+
+    @keyframes aparecer-fondo { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes subir { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .hoja-asa {
+      width: 44px;
+      height: 5px;
+      margin: 0 auto 14px;
+      background: var(--borde);
+      border-radius: 999px;
+    }
+
+    .hoja h2 { font-size: 22px; margin-bottom: 18px; }
+
+    .campo { display: block; margin-bottom: 18px; }
+    .campo > span { display: block; font-weight: 600; margin-bottom: 6px; }
+
+    .campo input {
+      width: 100%;
+      min-height: 56px;
+      padding: 0 14px;
+      border: 2px solid var(--borde);
+      border-radius: 14px;
+      background: var(--fondo);
+      color: var(--texto);
+      font-family: inherit;
+      font-size: 18px;               /* 16px o más evita el zoom automático en iPhone */
+    }
+
+    .campo input:focus { outline: none; border-color: var(--primario); background: var(--blanco); }
+
+    .fila-horario { display: flex; gap: 8px; margin-bottom: 10px; }
+    .fila-horario input { flex: 1; }
+
+    .boton-secundario {
+      width: 100%;
+      min-height: 52px;
+      border: 2px dashed var(--primario);
+      border-radius: 14px;
+      background: var(--primario-claro);
+      color: var(--primario-oscuro);
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .boton-texto {
+      width: 100%;
+      min-height: 52px;
+      margin-top: 6px;
+      border: none;
+      background: none;
+      color: var(--texto-suave);
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .hoja .boton { margin-top: 8px; }
+
+    .error { color: var(--peligro); font-weight: 600; margin-bottom: 8px; }
+    .error:empty { display: none; }
+
+    /* =========================================================
+       5. BARRA DE NAVEGACIÓN INFERIOR (fija abajo)
+       ========================================================= */
+    .nav-inferior {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: calc(var(--alto-nav) + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      background: var(--blanco);
+      border-top: 1px solid var(--borde);
+      box-shadow: 0 -4px 18px rgba(36, 44, 79, 0.06);
+      display: flex;
+      z-index: 10;
+    }
+
+    .nav-boton {
+      flex: 1;                        /* los 3 botones ocupan el mismo ancho */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border: none;
+      background: none;
+      color: var(--texto-suave);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .nav-boton svg {
+      width: 28px;
+      height: 28px;
+      padding: 4px 16px;
+      box-sizing: content-box;
+      border-radius: 999px;
+      transition: background 0.2s;
+    }
+
+    /* Estado activo: ícono con fondo azul claro y texto azul */
+    .nav-boton.activo { color: var(--primario); }
+    .nav-boton.activo svg { background: var(--primario-claro); }
+
+    .nav-boton:focus-visible { outline: 3px solid var(--primario); outline-offset: -6px; border-radius: 12px; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- ===================== LOGO DEL HOSPITAL ===================== -->
+    <div class="barra-logo">
+      <img src="logo-favaloro.png" alt="Hospital General de Agudos Dr. René Favaloro">
+    </div>
+
+    <!-- ===================== ENCABEZADO ===================== -->
+    <header class="encabezado">
+      <div class="marca">
+        <!-- Ícono de corazón con latido -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+          <path d="M3.5 12h4l2-3 3 6 2-3h6"/>
+        </svg>
+        CardioSegui
+      </div>
+      <!-- Este título cambia según la sección (lo actualiza el JavaScript) -->
+      <h1 id="titulo">Mi riesgo</h1>
+      <p id="subtitulo">Conocé tu riesgo cardiovascular</p>
+    </header>
+
+    <!-- ===================== CONTENIDO ===================== -->
+    <main>
+
+      <!-- Sección 1: Mi riesgo -->
+      <section id="riesgo" class="seccion activa">
+        <div class="tarjeta">
+          <div class="icono-grande">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <span class="etiqueta">Próximamente</span>
+          <h2>Mi riesgo</h2>
+          <p>Muy pronto vas a poder calcular y seguir tu riesgo cardiovascular.</p>
+          <button class="boton" disabled>Calcular mi riesgo</button>
+        </div>
+      </section>
+
+      <!-- Sección 2: Mi medicación -->
+      <section id="medicacion" class="seccion">
+
+        <!-- Resumen del día (lo completa el JavaScript) -->
+        <div class="resumen">
+          <div class="resumen-texto">
+            <span>Tomas de hoy</span>
+            <strong id="med-progreso">0 de 0</strong>
+          </div>
+          <div class="barra-progreso"><div id="med-barra"></div></div>
+          <p class="fecha" id="med-fecha"></p>
+        </div>
+
+        <button class="boton boton-agregar" id="btn-abrir-form" type="button">+ Agregar medicamento</button>
+
+        <!-- Se muestra solo si todavía no hay medicamentos -->
+        <div class="tarjeta vacio" id="med-vacio">
+          <div class="icono-grande">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.5 20.5a5 5 0 0 1-7-7l10-10a5 5 0 0 1 7 7z"/>
+              <path d="M8.5 8.5l7 7"/>
+            </svg>
+          </div>
+          <h2>Todavía no cargaste medicamentos</h2>
+          <p>Tocá "Agregar medicamento" para armar tu lista del día.</p>
+        </div>
+
+        <!-- Se muestra cuando hay al menos un medicamento -->
+        <div id="med-contenido">
+          <h3 class="titulo-lista">Hoy</h3>
+          <ul class="lista" id="lista-tomas"></ul>
+
+          <h3 class="titulo-lista">Mis medicamentos</h3>
+          <ul class="lista" id="lista-meds"></ul>
+        </div>
+
+      </section>
+
+      <!-- Sección 3: Mi rehabilitación -->
+      <section id="rehabilitacion" class="seccion">
+        <div class="tarjeta">
+          <div class="icono-grande">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="13" cy="4" r="2"/>
+              <path d="M7 21l3-6 3 2v5"/>
+              <path d="M10 15l1-6 4 3 3 1"/>
+              <path d="M11 9l-4 1-1 3"/>
+            </svg>
+          </div>
+          <span class="etiqueta">Próximamente</span>
+          <h2>Mi rehabilitación</h2>
+          <p>Muy pronto vas a poder seguir tus ejercicios y tu progreso de rehabilitación.</p>
+          <button class="boton" disabled>Empezar sesión</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ===================== FORMULARIO NUEVO MEDICAMENTO ===================== -->
+    <!-- Empieza oculto ("hidden"); se abre con el botón "+ Agregar medicamento" -->
+    <div class="hoja-fondo" id="form-med-fondo" hidden>
+      <form class="hoja" id="form-med" novalidate role="dialog" aria-modal="true" aria-labelledby="form-med-titulo">
+        <div class="hoja-asa"></div>
+        <h2 id="form-med-titulo">Nuevo medicamento</h2>
+
+        <label class="campo">
+          <span>Nombre</span>
+          <input id="med-nombre" type="text" placeholder="Ej: Enalapril" autocomplete="off" maxlength="60">
+        </label>
+
+        <label class="campo">
+          <span>Dosis</span>
+          <input id="med-dosis" type="text" placeholder="Ej: 10 mg – 1 comprimido" autocomplete="off" maxlength="60">
+        </label>
+
+        <div class="campo">
+          <span>Horarios</span>
+          <div id="med-horarios"></div>
+          <button type="button" class="boton-secundario" id="btn-agregar-horario">+ Agregar otro horario</button>
+        </div>
+
+        <p class="error" id="med-error" role="alert"></p>
+
+        <button type="submit" class="boton">Guardar</button>
+        <button type="button" class="boton-texto" id="btn-cancelar">Cancelar</button>
+      </form>
+    </div>
+
+    <!-- ===================== BARRA INFERIOR ===================== -->
+    <!-- data-seccion indica qué <section> muestra cada botón -->
+    <nav class="nav-inferior" aria-label="Navegación principal">
+      <button class="nav-boton activo" data-seccion="riesgo" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        Mi riesgo
+      </button>
+      <button class="nav-boton" data-seccion="medicacion">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.5 20.5a5 5 0 0 1-7-7l10-10a5 5 0 0 1 7 7z"/>
+          <path d="M8.5 8.5l7 7"/>
+        </svg>
+        Mi medicación
+      </button>
+      <button class="nav-boton" data-seccion="rehabilitacion">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="13" cy="4" r="2"/>
+          <path d="M7 21l3-6 3 2v5"/>
+          <path d="M10 15l1-6 4 3 3 1"/>
+          <path d="M11 9l-4 1-1 3"/>
+        </svg>
+        Mi rehabilitación
+      </button>
+    </nav>
+
+  </div>
+
+  <script>
+    // =========================================================
+    // 6. LÓGICA DE NAVEGACIÓN
+    // =========================================================
+
+    // Textos del encabezado para cada sección
+    const TEXTOS = {
+      riesgo:         { titulo: "Mi riesgo",         subtitulo: "Conocé tu riesgo cardiovascular" },
+      medicacion:     { titulo: "Mi medicación",     subtitulo: "Tus remedios, siempre al día" },
+      rehabilitacion: { titulo: "Mi rehabilitación", subtitulo: "Tu progreso, paso a paso" }
+    };
+
+    const botones   = document.querySelectorAll(".nav-boton");
+    const secciones = document.querySelectorAll(".seccion");
+    const titulo    = document.getElementById("titulo");
+    const subtitulo = document.getElementById("subtitulo");
+
+    // Muestra una sección y oculta las demás
+    function mostrarSeccion(id) {
+      secciones.forEach(s => s.classList.toggle("activa", s.id === id));
+
+      botones.forEach(b => {
+        const esActivo = b.dataset.seccion === id;
+        b.classList.toggle("activo", esActivo);
+        if (esActivo) b.setAttribute("aria-current", "page");
+        else b.removeAttribute("aria-current");
+      });
+
+      titulo.textContent    = TEXTOS[id].titulo;
+      subtitulo.textContent = TEXTOS[id].subtitulo;
+      window.scrollTo(0, 0);
+    }
+
+    // Cada botón de la barra llama a mostrarSeccion con su data-seccion
+    botones.forEach(b => {
+      b.addEventListener("click", () => mostrarSeccion(b.dataset.seccion));
+    });
+
+
+    // =========================================================
+    // 7. MI MEDICACIÓN
+    // =========================================================
+
+    // ---------- 7.1 Guardado en el navegador (localStorage) ----------
+    // medicamentos: [{ id, nombre, dosis, horarios: ["08:00", "20:00"] }]
+    // tomas:        { "2026-11-04": { "<id>@08:00": "08:12" } }
+    //               (por cada día, qué tomas se marcaron y a qué hora real)
+    const CLAVE_MEDS  = "cardiosegui.medicamentos";
+    const CLAVE_TOMAS = "cardiosegui.tomas";
+
+    function leer(clave, valorPorDefecto) {
+      try {
+        const texto = localStorage.getItem(clave);
+        return texto ? JSON.parse(texto) : valorPorDefecto;
+      } catch (e) {
+        return valorPorDefecto;   // datos corruptos o almacenamiento bloqueado
+      }
+    }
+
+    function guardar(clave, valor) {
+      try {
+        localStorage.setItem(clave, JSON.stringify(valor));
+      } catch (e) {
+        alert("No se pudieron guardar los datos en este navegador.");
+      }
+    }
+
+    let medicamentos = leer(CLAVE_MEDS, []);
+    let tomas        = leer(CLAVE_TOMAS, {});
+
+    // ---------- 7.2 Utilidades de fecha y hora ----------
+    const dosDigitos = n => String(n).padStart(2, "0");
+
+    // "2026-11-04" (en hora local, no UTC)
+    const claveFecha = d => `${d.getFullYear()}-${dosDigitos(d.getMonth() + 1)}-${dosDigitos(d.getDate())}`;
+    const fechaDeHoy = () => claveFecha(new Date());
+
+    // "14:05"
+    function horaActual() {
+      const d = new Date();
+      return `${dosDigitos(d.getHours())}:${dosDigitos(d.getMinutes())}`;
+    }
+
+    // Borra el registro de tomas de hace más de 60 días para no acumular datos
+    function limpiarTomasViejas() {
+      const limite = new Date();
+      limite.setDate(limite.getDate() - 60);
+      const claveLimite = claveFecha(limite);
+      Object.keys(tomas).forEach(dia => { if (dia < claveLimite) delete tomas[dia]; });
+      guardar(CLAVE_TOMAS, tomas);
+    }
+
+    const crearId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+    // ---------- 7.3 Íconos ----------
+    const ICONO_CHECK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    const ICONO_BORRAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+    const ICONO_EDITAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+    const ICONO_X      ='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+    // ---------- 7.4 Dibujar la pantalla ----------
+    const listaTomas = document.getElementById("lista-tomas");
+    const listaMeds  = document.getElementById("lista-meds");
+
+    function renderMedicacion() {
+      const hoy        = fechaDeHoy();
+      const ahora      = horaActual();
+      const tomadasHoy = tomas[hoy] || {};
+
+      // Una "toma" por cada horario de cada medicamento, ordenadas por hora
+      const tomasDelDia = medicamentos
+        .flatMap(med => med.horarios.map(hora => ({ med, hora, clave: `${med.id}@${hora}` })))
+        .sort((a, b) => a.hora.localeCompare(b.hora) || a.med.nombre.localeCompare(b.med.nombre));
+
+      // Resumen
+      const cantTomadas = tomasDelDia.filter(t => tomadasHoy[t.clave]).length;
+      const total       = tomasDelDia.length;
+      document.getElementById("med-progreso").textContent = `${cantTomadas} de ${total}`;
+      document.getElementById("med-barra").style.width = total ? `${(cantTomadas / total) * 100}%` : "0";
+      document.getElementById("med-fecha").textContent =
+        new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+
+      // Vacío o con contenido
+      const hayMeds = medicamentos.length > 0;
+      document.getElementById("med-vacio").hidden     = hayMeds;
+      document.getElementById("med-contenido").hidden = !hayMeds;
+
+      // Listas
+      listaTomas.replaceChildren(...tomasDelDia.map(t => crearItemToma(t, tomadasHoy[t.clave], ahora)));
+      const ordenados = [...medicamentos].sort((a, b) => a.nombre.localeCompare(b.nombre));
+      listaMeds.replaceChildren(...ordenados.map(crearItemMedicamento));
+    }
+
+    // Un renglón de la lista "Hoy"
+    function crearItemToma({ med, hora, clave }, horaTomada, ahora) {
+      const atrasada = !horaTomada && hora < ahora;
+
+      const li = document.createElement("li");
+      li.className = "toma" + (horaTomada ? " tomada" : atrasada ? " atrasada" : "");
+      li.innerHTML = `
+        <div class="toma-hora"></div>
+        <div class="toma-info"><strong></strong><span></span><em class="estado"></em></div>
+        <button class="check" type="button">${ICONO_CHECK}</button>`;
+
+      // textContent (y no innerHTML) para que lo que escribe el usuario no se interprete como código
+      li.querySelector(".toma-hora").textContent = hora;
+      li.querySelector("strong").textContent     = med.nombre;
+      li.querySelector("span").textContent       = med.dosis;
+      li.querySelector(".estado").textContent    =
+        horaTomada ? `Tomada a las ${horaTomada}` : atrasada ? "Atrasada" : "";
+
+      const boton = li.querySelector(".check");
+      boton.setAttribute("aria-pressed", horaTomada ? "true" : "false");
+      boton.setAttribute("aria-label", `${med.nombre}, ${hora}: ${horaTomada ? "tomada" : "marcar como tomada"}`);
+      boton.addEventListener("click", () => alternarToma(clave));
+      return li;
+    }
+
+    // Un renglón de la lista "Mis medicamentos"
+    function crearItemMedicamento(med) {
+      const li = document.createElement("li");
+      li.className = "med";
+      li.innerHTML = `
+        <div class="med-info"><strong></strong><span></span><div class="chips"></div></div>
+        <button class="boton-icono editar" type="button">${ICONO_EDITAR}</button>
+        <button class="boton-icono borrar" type="button">${ICONO_BORRAR}</button>`;
+
+      li.querySelector("strong").textContent = med.nombre;
+      li.querySelector("span").textContent   = med.dosis;
+      li.querySelector(".chips").replaceChildren(...med.horarios.map(h => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = h;
+        return chip;
+      }));
+
+      const botonEditar = li.querySelector(".editar");
+      botonEditar.setAttribute("aria-label", `Editar ${med.nombre}`);
+      botonEditar.addEventListener("click", () => abrirFormulario(med));
+
+      const botonBorrar = li.querySelector(".borrar");
+      botonBorrar.setAttribute("aria-label", `Eliminar ${med.nombre}`);
+      botonBorrar.addEventListener("click", () => eliminarMedicamento(med));
+      return li;
+    }
+
+    // ---------- 7.5 Acciones ----------
+    // Marca o desmarca una toma de hoy
+    function alternarToma(clave) {
+      const hoy = fechaDeHoy();
+      tomas[hoy] = tomas[hoy] || {};
+      if (tomas[hoy][clave]) delete tomas[hoy][clave];
+      else tomas[hoy][clave] = horaActual();
+      guardar(CLAVE_TOMAS, tomas);
+      renderMedicacion();
+    }
+
+    function eliminarMedicamento(med) {
+      if (!confirm(`¿Eliminar "${med.nombre}" de tu lista?`)) return;
+      medicamentos = medicamentos.filter(m => m.id !== med.id);
+      guardar(CLAVE_MEDS, medicamentos);
+      renderMedicacion();
+    }
+
+    // ---------- 7.6 Formulario ----------
+    const fondoForm    = document.getElementById("form-med-fondo");
+    const formMed      = document.getElementById("form-med");
+    const inputNombre  = document.getElementById("med-nombre");
+    const inputDosis   = document.getElementById("med-dosis");
+    const contHorarios = document.getElementById("med-horarios");
+    const errorForm    = document.getElementById("med-error");
+
+    function agregarFilaHorario(valor = "") {
+      const fila = document.createElement("div");
+      fila.className = "fila-horario";
+      fila.innerHTML = `
+        <input type="time" aria-label="Horario">
+        <button type="button" class="boton-icono quitar" aria-label="Quitar horario">${ICONO_X}</button>`;
+      fila.querySelector("input").value = valor;
+      fila.querySelector("button").addEventListener("click", () => {
+        fila.remove();
+        actualizarBotonesQuitar();
+      });
+      contHorarios.appendChild(fila);
+      actualizarBotonesQuitar();
+      return fila;
+    }
+
+    // Si queda un solo horario no se puede quitar
+    function actualizarBotonesQuitar() {
+      const quitar = contHorarios.querySelectorAll(".quitar");
+      quitar.forEach(b => b.hidden = quitar.length === 1);
+    }
+
+    // id del medicamento que se está editando (null = se está agregando uno nuevo)
+    let editandoId = null;
+
+    // Sin parámetro: formulario vacío para agregar.
+    // Con un medicamento: formulario completo con sus datos para editarlo.
+    function abrirFormulario(med = null) {
+      editandoId = med ? med.id : null;
+      formMed.reset();
+      errorForm.textContent = "";
+      document.getElementById("form-med-titulo").textContent = med ? "Editar medicamento" : "Nuevo medicamento";
+      inputNombre.value = med ? med.nombre : "";
+      inputDosis.value  = med ? med.dosis  : "";
+      contHorarios.replaceChildren();
+      (med ? med.horarios : ["08:00"]).forEach(h => agregarFilaHorario(h));
+      fondoForm.hidden = false;
+      document.body.style.overflow = "hidden";   // que no se mueva la página de atrás
+      setTimeout(() => inputNombre.focus(), 250);
+    }
+
+    function cerrarFormulario() {
+      fondoForm.hidden = true;
+      document.body.style.overflow = "";
+      document.getElementById("btn-abrir-form").focus();
+    }
+
+    function mostrarError(mensaje, campo) {
+      errorForm.textContent = mensaje;
+      if (campo) campo.focus();
+    }
+
+    formMed.addEventListener("submit", e => {
+      e.preventDefault();   // evita que el formulario recargue la página
+
+      const nombre = inputNombre.value.trim();
+      const dosis  = inputDosis.value.trim();
+      // Horarios cargados, sin vacíos ni repetidos, ordenados
+      const horarios = [...new Set(
+        [...contHorarios.querySelectorAll("input")].map(i => i.value).filter(Boolean)
+      )].sort();
+
+      if (!nombre)          return mostrarError("Escribí el nombre del medicamento.", inputNombre);
+      if (!dosis)           return mostrarError("Escribí la dosis.", inputDosis);
+      if (!horarios.length) return mostrarError("Agregá al menos un horario.", contHorarios.querySelector("input"));
+
+      if (editandoId) {
+        // Editar: se conserva el id, así las tomas ya marcadas en horarios que no cambiaron se mantienen
+        medicamentos = medicamentos.map(m => m.id === editandoId ? { ...m, nombre, dosis, horarios } : m);
+      } else {
+        medicamentos.push({ id: crearId(), nombre, dosis, horarios });
+      }
+      guardar(CLAVE_MEDS, medicamentos);
+      cerrarFormulario();
+      renderMedicacion();
+    });
+
+    document.getElementById("btn-abrir-form").addEventListener("click", () => abrirFormulario());
+    document.getElementById("btn-cancelar").addEventListener("click", cerrarFormulario);
+    document.getElementById("btn-agregar-horario").addEventListener("click", () => {
+      agregarFilaHorario().querySelector("input").focus();
+    });
+
+    // Cerrar tocando afuera de la hoja o con la tecla Escape
+    fondoForm.addEventListener("click", e => { if (e.target === fondoForm) cerrarFormulario(); });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && !fondoForm.hidden) cerrarFormulario();
+    });
+
+    // ---------- 7.7 Arranque ----------
+    limpiarTomasViejas();
+    renderMedicacion();
+
+    // Actualiza cada minuto (para "Atrasada") y al volver a la app (por si cambió el día)
+    setInterval(renderMedicacion, 60 * 1000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) renderMedicacion();
+    });
+  </script>
+</body>
+</html>

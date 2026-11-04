@@ -1,0 +1,3 @@
+# Archivos que Git debe ignorar (no forman parte de CardioSegui)
+equipos.txt
+ping.ps1
