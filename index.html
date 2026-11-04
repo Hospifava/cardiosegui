@@ -887,18 +887,6 @@
               </div>
             </fieldset>
 
-            <div class="fila-campos">
-              <label class="campo">
-                <span>Peso (kg)</span>
-                <!-- type="text" + inputmode="decimal": teclado numérico y acepta coma (75,5) -->
-                <input id="riesgo-peso" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 75">
-              </label>
-              <label class="campo">
-                <span>Altura (cm)</span>
-                <input id="riesgo-altura" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 168">
-              </label>
-            </div>
-
             <label class="campo">
               <span>Presión sistólica, la "máxima" (mmHg)</span>
               <input id="riesgo-pas" type="number" inputmode="numeric" min="80" max="250" placeholder="Ej: 130">
@@ -916,10 +904,24 @@
               <input type="checkbox" id="riesgo-sin-colesterol">
               <span>No sé mi colesterol</span>
             </label>
-            <p class="pista pista-check" id="riesgo-sin-colesterol-pista" hidden>
-              Vamos a usar tu peso y tu altura en lugar del colesterol. El resultado es menos preciso:
-              cuando tengas un análisis de sangre, volvé a calcularlo.
-            </p>
+            <!-- Solo visible con el tilde marcado: peso y altura reemplazan al colesterol -->
+            <div id="riesgo-peso-altura" hidden>
+              <p class="pista pista-check">
+                Completá tu peso y tu altura: los usamos en lugar del colesterol. El resultado es menos preciso,
+                así que cuando tengas un análisis de sangre, volvé a calcularlo.
+              </p>
+              <div class="fila-campos">
+                <label class="campo">
+                  <span>Peso (kg)</span>
+                  <!-- type="text" + inputmode="decimal": teclado numérico y acepta coma (75,5) -->
+                  <input id="riesgo-peso" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 75">
+                </label>
+                <label class="campo">
+                  <span>Altura (cm)</span>
+                  <input id="riesgo-altura" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 168">
+                </label>
+              </div>
+            </div>
 
             <fieldset class="grupo">
               <legend>¿Fumás actualmente?</legend>
@@ -1870,10 +1872,10 @@
     const inputAltura    = document.getElementById("riesgo-altura");
     const checkSinColest = document.getElementById("riesgo-sin-colesterol");
 
-    // "No sé mi colesterol": oculta el campo y muestra la explicación
+    // "No sé mi colesterol": desmarcado → se ve el colesterol; marcado → se ven peso y altura
     function actualizarSinColesterol() {
       document.getElementById("riesgo-colesterol-caja").hidden = checkSinColest.checked;
-      document.getElementById("riesgo-sin-colesterol-pista").hidden = !checkSinColest.checked;
+      document.getElementById("riesgo-peso-altura").hidden    = !checkSinColest.checked;
       errorRiesgo.textContent = "";
     }
     checkSinColest.addEventListener("change", actualizarSinColesterol);
@@ -1923,24 +1925,26 @@
 
       const edad = leerNumero(inputEdad);
       const pas  = leerNumero(inputPas);
-      const peso = leerNumero(inputPeso);
-      let altura = leerNumero(inputAltura);
-      if (altura > 0 && altura < 3) altura = Math.round(altura * 100);   // escribió metros (1,68) → 168 cm
+      // Solo se leen los campos visibles: colesterol, o peso y altura
       const sinColesterol = checkSinColest.checked;
       const colesterol = sinColesterol ? null : leerNumero(inputColest);
+      const peso = sinColesterol ? leerNumero(inputPeso) : null;
+      let altura = sinColesterol ? leerNumero(inputAltura) : null;
+      if (altura > 0 && altura < 3) altura = Math.round(altura * 100);   // escribió metros (1,68) → 168 cm
 
       if (!Number.isFinite(edad)) return errorEn("Escribí tu edad.", inputEdad);
       if (edad < 40 || edad > 80) {
         return errorEn("Este cálculo sirve solo entre 40 y 80 años. Consultá con tu médico cómo evaluar tu riesgo.", inputEdad);
       }
       if (!respuestas.sexo) return errorEn("Elegí tu sexo.");
-      if (!Number.isFinite(peso)) return errorEn("Escribí tu peso.", inputPeso);
-      if (peso < 30 || peso > 250) return errorEn("Revisá el peso: tiene que estar entre 30 y 250 kg.", inputPeso);
-      if (!Number.isFinite(altura)) return errorEn("Escribí tu altura.", inputAltura);
-      if (altura < 120 || altura > 220) return errorEn("Revisá la altura: tiene que estar entre 120 y 220 cm.", inputAltura);
       if (!Number.isFinite(pas)) return errorEn("Escribí tu presión máxima.", inputPas);
       if (pas < 80 || pas > 250) return errorEn("Revisá la presión: tiene que estar entre 80 y 250 mmHg.", inputPas);
-      if (!sinColesterol) {
+      if (sinColesterol) {
+        if (!Number.isFinite(peso)) return errorEn("Escribí tu peso.", inputPeso);
+        if (peso < 30 || peso > 250) return errorEn("Revisá el peso: tiene que estar entre 30 y 250 kg.", inputPeso);
+        if (!Number.isFinite(altura)) return errorEn("Escribí tu altura.", inputAltura);
+        if (altura < 120 || altura > 220) return errorEn("Revisá la altura: tiene que estar entre 120 y 220 cm.", inputAltura);
+      } else {
         if (!Number.isFinite(colesterol)) {
           return errorEn("Escribí tu colesterol total, o marcá «No sé mi colesterol».", inputColest);
         }
@@ -1951,7 +1955,7 @@
       if (!respuestas.fuma) return errorEn("Respondé si fumás.");
       if (!respuestas.diabetes) return errorEn("Respondé si tenés diabetes.");
 
-      inputAltura.value = altura;
+      if (sinColesterol) inputAltura.value = altura;   // muestra la conversión de metros a cm
       return { previo: "no", edad, sexo: respuestas.sexo, peso, altura, pas, sinColesterol, colesterol,
                fuma: respuestas.fuma, diabetes: respuestas.diabetes };
     }
@@ -2030,6 +2034,7 @@
       e.preventDefault();
       const datos = validarRiesgo();
       if (!datos) return;
+      errorRiesgo.textContent = "";   // borra el error anterior, si había uno
 
       const fecha = fechaDeHoy();
       guardar(CLAVE_RIESGO, { datos, fecha });
