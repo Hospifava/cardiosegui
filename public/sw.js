@@ -6,7 +6,7 @@
 // Así los celulares que ya la tienen instalada descargan la versión nueva.
 // =========================================================
 
-const VERSION = "cardiosegui-v1";
+const VERSION = "cardiosegui-v2";
 
 // Archivos de la app que se guardan al instalar
 const ARCHIVOS = [
@@ -29,11 +29,15 @@ self.addEventListener("install", evento => {
   );
 });
 
-// 2) Activación: borra las copias de versiones anteriores
+// 2) Activación: borra las copias de versiones anteriores de CardioSegui.
+//    Solo las que empiezan con "cardiosegui-": el sitio es compartido con Hospifava
+//    y otras apps, y sus copias no se tocan.
 self.addEventListener("activate", evento => {
   evento.waitUntil(
     caches.keys()
-      .then(claves => Promise.all(claves.filter(c => c !== VERSION).map(c => caches.delete(c))))
+      .then(claves => Promise.all(claves
+        .filter(c => c.startsWith("cardiosegui-") && c !== VERSION)
+        .map(c => caches.delete(c))))
       .then(() => self.clients.claim())
   );
 });

@@ -83,12 +83,44 @@
       border-bottom: 4px solid var(--celeste);
     }
 
+    .barra-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .barra-logo img {
       display: block;
+      flex: 1;
+      min-width: 0;
       width: 100%;
       max-width: 340px;
       height: auto;
     }
+
+    /* Botón para volver a Hospifava (la app central con todas las apps) */
+    .volver-apps {
+      flex-shrink: 0;
+      margin-left: auto;
+      min-width: 52px;
+      min-height: 52px;
+      padding: 4px 6px;
+      border-radius: 14px;
+      background: var(--primario-claro);
+      color: var(--primario-oscuro);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .volver-apps svg { width: 22px; height: 22px; }
+    .volver-apps:active { transform: scale(0.95); }
+    .volver-apps:focus-visible { outline: 3px solid var(--primario); outline-offset: 2px; }
 
     /* Bloque azul con el nombre de la app y el título de la sección */
     .encabezado {
@@ -856,6 +888,14 @@
     <div class="barra-logo">
       <!-- width/height: el navegador reserva el lugar antes de cargar la imagen (no "salta" la pantalla) -->
       <img src="logo-favaloro.png" alt="Hospital General de Agudos Dr. René Favaloro" width="425" height="67">
+      <!-- Vuelve a la app central Hospifava (en iPhone, las apps instaladas no tienen botón "atrás") -->
+      <a class="volver-apps" href="/" aria-label="Volver a Hospifava, todas las apps">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+        Apps
+      </a>
     </div>
 
     <!-- ===================== ENCABEZADO ===================== -->

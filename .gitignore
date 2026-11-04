@@ -1,3 +1,6 @@
 # Archivos que Git debe ignorar (no forman parte de CardioSegui)
 equipos.txt
 ping.ps1
+
+# App central Hospifava (tiene su propio repositorio: Hospifava/hospifava.github.io)
+hospifava/
