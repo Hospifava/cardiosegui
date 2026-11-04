@@ -365,6 +365,132 @@
     .vacio h2 { font-size: 20px; }
 
     /* =========================================================
+       4e. MI RIESGO
+       ========================================================= */
+    /* Aviso fijo de que el cálculo es orientativo */
+    .aviso-info {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 2px solid #f0d58c;
+      border-radius: 16px;
+      background: #fff8e6;
+      color: #5c4300;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .aviso-info svg { width: 26px; height: 26px; flex-shrink: 0; color: var(--ambar); margin-top: 1px; }
+
+    .ayuda { margin: 2px 0 16px; font-size: 15px; color: var(--texto-suave); }
+
+    .grupo { border: none; margin: 0 0 18px; padding: 0; }
+    .grupo legend { font-weight: 600; margin-bottom: 8px; padding: 0; }
+
+    .opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .opcion {
+      min-height: 56px;
+      border: 2px solid var(--borde);
+      border-radius: 14px;
+      background: var(--blanco);
+      color: var(--texto-suave);
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .opcion:active { transform: scale(0.98); }
+    .opcion[aria-checked="true"] {
+      border: 3px solid var(--primario);
+      background: var(--primario-claro);
+      color: var(--primario-oscuro);
+    }
+
+    .pista { display: block; margin-top: 6px; font-size: 14px; font-weight: 400; color: var(--texto-suave); }
+
+    /* Tarjeta de resultado */
+    .resultado {
+      margin-top: 16px;
+      padding: 22px 20px;
+      background: var(--blanco);
+      border-radius: var(--radio);
+      box-shadow: var(--sombra);
+    }
+
+    .resultado h3 { font-size: 19px; margin-bottom: 14px; }
+
+    .resultado-cabecera {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      flex-wrap: wrap;
+    }
+
+    /* Semáforo: columna oscura con 3 luces + etiqueta al lado de cada una */
+    .semaforo {
+      display: grid;
+      grid-template-columns: auto auto;
+      column-gap: 12px;
+      align-items: center;
+    }
+
+    .luz-caja { background: var(--marino); padding: 6px 10px; }
+    .luz-caja.primera { border-radius: 18px 18px 0 0; padding-top: 12px; }
+    .luz-caja.ultima  { border-radius: 0 0 18px 18px; padding-bottom: 12px; }
+
+    .luz {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--c);
+      opacity: 0.2;
+      transition: opacity 0.3s, box-shadow 0.3s;
+    }
+
+    .luz.roja     { --c: #e5483a; }
+    .luz.amarilla { --c: #f5b700; }
+    .luz.verde    { --c: #34b37a; }
+    .luz.encendida { opacity: 1; box-shadow: 0 0 16px 2px var(--c); }
+
+    .luz-texto { font-size: 14px; color: var(--texto-suave); line-height: 1.25; }
+    .luz-texto.activa { color: var(--texto); font-weight: 700; }
+
+    .resultado-numero { text-align: center; }
+    .resultado-porcentaje { font-size: 46px; font-weight: 800; color: var(--marino); line-height: 1.1; }
+    .resultado-categoria { font-size: 20px; font-weight: 700; }
+
+    .resultado-explicacion { margin-top: 16px; font-size: 16px; color: var(--texto); text-align: center; }
+    .resultado-fecha { margin-top: 4px; font-size: 14px; color: var(--texto-suave); text-align: center; }
+
+    .consejos { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--borde); }
+    .consejos h4 { font-size: 17px; margin-bottom: 10px; }
+    .consejos ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+    .consejos li {
+      position: relative;
+      padding-left: 26px;
+      font-size: 16px;
+    }
+
+    .consejos li::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 8px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primario);
+    }
+
+    .fuente { margin-top: 18px; font-size: 13px; color: var(--texto-suave); line-height: 1.45; }
+
+    /* =========================================================
        4d. MI REHABILITACIÓN
        ========================================================= */
     .registro h3, .tarjeta-grafico h3 { font-size: 19px; }
@@ -682,17 +808,111 @@
 
       <!-- Sección 1: Mi riesgo -->
       <section id="riesgo" class="seccion activa">
-        <div class="tarjeta">
-          <div class="icono-grande">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-            </svg>
+
+        <!-- Aviso siempre visible -->
+        <div class="aviso-info" role="note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><path d="M12 16v-5"/><path d="M12 8h.01"/>
+          </svg>
+          <div>
+            <strong>Es solo orientativo.</strong> Este cálculo es una estimación y
+            <strong>no reemplaza la consulta médica</strong>. Hablá siempre de tus resultados con tu médico.
           </div>
-          <span class="etiqueta">Próximamente</span>
-          <h2>Mi riesgo</h2>
-          <p>Muy pronto vas a poder calcular y seguir tu riesgo cardiovascular.</p>
-          <button class="boton" disabled>Calcular mi riesgo</button>
         </div>
+
+        <form class="resumen" id="form-riesgo" novalidate>
+          <h3>Calculá tu riesgo</h3>
+          <p class="ayuda">Estima la probabilidad de tener un infarto o un ACV en los próximos 10 años.</p>
+
+          <fieldset class="grupo">
+            <legend>¿Ya tuviste un infarto, un ACV, una angioplastia o una cirugía cardíaca?</legend>
+            <div class="opciones" data-campo="previo" role="radiogroup">
+              <button type="button" class="opcion" role="radio" aria-checked="false" data-valor="si">Sí</button>
+              <button type="button" class="opcion" role="radio" aria-checked="false" data-valor="no">No</button>
+            </div>
+          </fieldset>
+
+          <!-- Se oculta si respondió "Sí" a la pregunta anterior -->
+          <div id="riesgo-campos">
+            <label class="campo">
+              <span>Edad (años)</span>
+              <input id="riesgo-edad" type="number" inputmode="numeric" min="40" max="80" placeholder="Ej: 55">
+              <small class="pista">El cálculo sirve para personas de 40 a 80 años.</small>
+            </label>
+
+            <fieldset class="grupo">
+              <legend>Sexo</legend>
+              <div class="opciones" data-campo="sexo" role="radiogroup">
+                <button type="button" class="opcion" role="radio" aria-checked="false" data-valor="mujer">Mujer</button>
+                <button type="button" class="opcion" role="radio" aria-checked="false" data-valor="hombre">Hombre</button>
+              </div>
+            </fieldset>
+
+            <label class="campo">
+              <span>Presión sistólica, la "máxima" (mmHg)</span>
+              <input id="riesgo-pas" type="number" inputmode="numeric" min="80" max="250" placeholder="Ej: 130">
+              <small class="pista">Si te dijeron "13 y 8", la máxima es 130.</small>
+            </label>
+
+            <label class="campo">
+              <span>Colesterol total (mg/dL)</span>
+              <input id="riesgo-colesterol" type="number" inputmode="numeric" min="80" max="400" placeholder="Ej: 200">
+              <small class="pista">Figura en tu último análisis de sangre.</small>
+            </label>
+
+            <fieldset class="grupo">
+              <legend>¿Fumás actualmente?</legend>
+              <div class="opciones" data-campo="fuma" role="radiogroup">
+                <button type="button" class="opcion" role="radio" aria-checked="false" data-valor="si">Sí</button>
+                <button type="button" class="opcion" role="radio" aria-checked="false" data-valor="no">No</button>
+              </div>
+            </fieldset>
+
+            <fieldset class="grupo">
+              <legend>¿Tenés diabetes?</legend>
+              <div class="opciones" data-campo="diabetes" role="radiogroup">
+                <button type="button" class="opcion" role="radio" aria-checked="false" data-valor="si">Sí</button>
+                <button type="button" class="opcion" role="radio" aria-checked="false" data-valor="no">No</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <p class="error" id="riesgo-error" role="alert"></p>
+          <button type="submit" class="boton" id="riesgo-calcular">Calcular mi riesgo</button>
+        </form>
+
+        <!-- Resultado (lo completa el JavaScript) -->
+        <div class="resultado" id="riesgo-resultado" hidden tabindex="-1">
+          <h3>Tu resultado</h3>
+          <div class="resultado-cabecera">
+            <div class="semaforo" aria-hidden="true">
+              <div class="luz-caja primera"><div class="luz roja"></div></div>
+              <div class="luz-texto" data-luz="roja">Alto<br>20 % o más</div>
+              <div class="luz-caja"><div class="luz amarilla"></div></div>
+              <div class="luz-texto" data-luz="amarilla">Moderado<br>10 a 19 %</div>
+              <div class="luz-caja ultima"><div class="luz verde"></div></div>
+              <div class="luz-texto" data-luz="verde">Bajo<br>menos de 10 %</div>
+            </div>
+            <div class="resultado-numero">
+              <div class="resultado-porcentaje" id="riesgo-porcentaje"></div>
+              <div class="resultado-categoria" id="riesgo-categoria"></div>
+            </div>
+          </div>
+          <p class="resultado-explicacion" id="riesgo-explicacion"></p>
+          <p class="resultado-fecha" id="riesgo-fecha"></p>
+
+          <div class="consejos">
+            <h4>Consejos para cuidar tu corazón</h4>
+            <ul id="riesgo-consejos"></ul>
+          </div>
+
+          <p class="fuente">
+            <strong>Cómo se calcula:</strong> modelo de riesgo cardiovascular de la OMS (2019, versión con
+            laboratorio), ajustado para Sudamérica austral: Argentina, Chile y Uruguay.
+            Fuente: Kaptoge S. y col., <em>Lancet Global Health</em> 2019;7(10):e1332–e1345.
+          </p>
+        </div>
+
       </section>
 
       <!-- Sección 2: Mi medicación -->
@@ -1411,6 +1631,249 @@
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) renderRehabilitacion();
     });
+
+
+    // =========================================================
+    // 9. MI RIESGO
+    // =========================================================
+
+    // ---------- 9.1 Modelo de riesgo de la OMS 2019 (versión con laboratorio) ----------
+    // Fuente: Kaptoge S, et al. World Health Organization cardiovascular disease risk charts:
+    // revised models to estimate risk in 21 global regions. Lancet Glob Health 2019;7(10):e1332-e1345.
+    // Coeficientes y parámetros de recalibración tomados del paquete WHORiskCalculator (CRAN),
+    // que reproduce el programa oficial en Stata de los autores (whocvdrisk).
+    //
+    // Pasos:
+    //  1) Para infarto (CHD) y para ACV se calcula un riesgo "base" con un modelo de Cox:
+    //     P = 1 - S0 ^ exp(LP), con las variables centradas (edad-60, PAS-120, colesterol-6)
+    //     y con interacciones con la edad.
+    //  2) Cada riesgo se recalibra a la región: P' = 1 - exp(-exp(c + s * ln(-ln(1 - P)))).
+    //  3) Se combinan: riesgo total = 1 - (1 - P'infarto) * (1 - P'ACV).
+
+    // <calculo-oms>
+    const OMS_COEFICIENTES = {
+      infarto: {
+        hombre: { edad: 0.0719227, col: 0.2284944, pas: 0.0132183, dm: 0.6410114, fuma: 0.5638109,
+                  colEdad: -0.0045806, pasEdad: -0.0001576, dmEdad: -0.0124966, fumaEdad: -0.0182545, s0: 0.9540108 },
+        mujer:  { edad: 0.1020713, col: 0.2050377, pas: 0.015823,  dm: 1.070358,  fuma: 1.053223,
+                  colEdad: -0.0051932, pasEdad: -0.0001378, dmEdad: -0.0234174, fumaEdad: -0.0332666, s0: 0.9894159 }
+      },
+      acv: {
+        hombre: { edad: 0.0986578, col: 0.029526,  pas: 0.0222629, dm: 0.6268712, fuma: 0.4981217,
+                  colEdad: 0.00142,    pasEdad: -0.0004147, dmEdad: -0.026302,  fumaEdad: -0.0150561, s0: 0.9849257 },
+        mujer:  { edad: 0.1056632, col: 0.0257782, pas: 0.0206278, dm: 0.8581998, fuma: 0.7443627,
+                  colEdad: -0.0021387, pasEdad: -0.0004897, dmEdad: -0.0209826, fumaEdad: -0.0200822, s0: 0.9890569 }
+      }
+    };
+
+    // Recalibración para "Sudamérica austral" (Argentina, Chile, Uruguay), año 2017 — igual que las tablas de la OMS
+    // [constante, pendiente]
+    const OMS_CALIBRACION_ARGENTINA = {
+      hombre: { infarto: [-0.2872235178947449, 0.8339170813560486], acv: [-1.013867974281311, 0.6555721163749695] },
+      mujer:  { infarto: [0.01781981810927391, 0.9111283421516418], acv: [-0.9808573722839355, 0.6816636323928833] }
+    };
+
+    // datos: { edad, sexo: "hombre"|"mujer", pas (mmHg), colesterolMmol (mmol/L), fuma (bool), diabetes (bool) }
+    // Devuelve el riesgo a 10 años como proporción (0 a 1)
+    function riesgoOMS(datos, calibracion = OMS_CALIBRACION_ARGENTINA) {
+      const a   = datos.edad - 60;
+      const pas = datos.pas - 120;
+      const col = datos.colesterolMmol - 6;
+      const fuma = datos.fuma ? 1 : 0;
+      const dm   = datos.diabetes ? 1 : 0;
+
+      const riesgoDe = evento => {
+        const b = OMS_COEFICIENTES[evento][datos.sexo];
+        const lp = b.edad * a + b.col * col + b.pas * pas + b.fuma * fuma + b.dm * dm
+                 + b.colEdad * col * a + b.pasEdad * pas * a + b.fumaEdad * fuma * a + b.dmEdad * dm * a;
+        const base = 1 - Math.pow(b.s0, Math.exp(lp));
+        const [c, s] = calibracion[datos.sexo][evento];
+        return 1 - Math.exp(-Math.exp(c + s * Math.log(-Math.log(1 - base))));
+      };
+
+      return 1 - (1 - riesgoDe("infarto")) * (1 - riesgoDe("acv"));
+    }
+    // </calculo-oms>
+
+    const MG_DL_POR_MMOL = 38.67;   // colesterol: mg/dL ÷ 38,67 = mmol/L
+
+    // ---------- 9.2 Categorías del semáforo ----------
+    // Igual que las tablas OMS/OPS: <10 % bajo, 10-19 % moderado, 20-29 % alto, ≥30 % muy alto
+    function categoriaRiesgo(porcentaje) {
+      if (porcentaje < 10) return { luz: "verde",    texto: "Riesgo bajo" };
+      if (porcentaje < 20) return { luz: "amarilla", texto: "Riesgo moderado" };
+      if (porcentaje < 30) return { luz: "roja",     texto: "Riesgo alto" };
+      return                      { luz: "roja",     texto: "Riesgo muy alto" };
+    }
+
+    // ---------- 9.3 Consejos según los datos ----------
+    function armarConsejos(d, categoria) {
+      const consejos = [];
+      if (d.previo === "si") {
+        consejos.push("Seguí las indicaciones de tu cardiólogo y no faltes a tus controles.");
+      } else if (categoria.luz === "roja") {
+        consejos.push("Pedí un turno con tu médico pronto: con este nivel de riesgo es importante que evalúe si necesitás tratamiento.");
+      } else if (categoria.luz === "amarilla") {
+        consejos.push("Consultá con tu médico para revisar tus valores y ver cómo bajar tu riesgo.");
+      }
+      if (d.fuma === "si") {
+        consejos.push("Dejar de fumar es lo que más baja tu riesgo. Pedí ayuda en tu centro de salud: hay tratamientos que lo hacen más fácil.");
+      }
+      if (d.pas >= 140) {
+        consejos.push("Tu presión máxima está en 140 o más: controlala seguido y consultá con tu médico.");
+      }
+      if (d.colesterol >= 240) {
+        consejos.push("Tu colesterol total es alto (240 mg/dL o más): consultalo con tu médico.");
+      }
+      if (d.diabetes === "si") {
+        consejos.push("Mantené tu diabetes controlada: tomá la medicación indicada y hacé tus controles.");
+      }
+      consejos.push("Movete todos los días: caminar a paso ligero suma mucho. Hacelo según lo que te indique tu médico y registralo en «Mi rehabilitación».");
+      consejos.push("Comé con poca sal y sumá frutas, verduras, legumbres y cereales integrales.");
+      consejos.push("Cuidá tu peso y evitá el exceso de alcohol.");
+      consejos.push("Si te indicaron medicamentos, tomalos todos los días. «Mi medicación» te ayuda a recordarlo.");
+      return consejos;
+    }
+
+    // ---------- 9.4 Formulario ----------
+    const CLAVE_RIESGO = "cardiosegui.riesgo";
+
+    const formRiesgo     = document.getElementById("form-riesgo");
+    const camposRiesgo   = document.getElementById("riesgo-campos");
+    const errorRiesgo    = document.getElementById("riesgo-error");
+    const resultadoRiesgo = document.getElementById("riesgo-resultado");
+    const inputEdad      = document.getElementById("riesgo-edad");
+    const inputPas       = document.getElementById("riesgo-pas");
+    const inputColest    = document.getElementById("riesgo-colesterol");
+
+    // Respuestas de los botones Sí/No y Mujer/Hombre
+    const respuestas = { previo: null, sexo: null, fuma: null, diabetes: null };
+
+    function elegirOpcion(campo, valor) {
+      respuestas[campo] = valor;
+      document.querySelectorAll(`.opciones[data-campo="${campo}"] .opcion`).forEach(b =>
+        b.setAttribute("aria-checked", String(b.dataset.valor === valor)));
+      if (campo === "previo") camposRiesgo.hidden = valor === "si";
+      errorRiesgo.textContent = "";
+    }
+
+    document.querySelectorAll(".opciones[data-campo]").forEach(grupo => {
+      grupo.querySelectorAll(".opcion").forEach(b => {
+        b.addEventListener("click", () => elegirOpcion(grupo.dataset.campo, b.dataset.valor));
+      });
+    });
+
+    // Lee un número aceptando coma decimal ("5,5")
+    const leerNumero = input => Number(String(input.value).replace(",", ".").trim() || NaN);
+
+    function errorEn(mensaje, campo) {
+      errorRiesgo.textContent = mensaje;
+      if (campo) campo.focus();
+      return null;
+    }
+
+    // Valida el formulario. Devuelve los datos o null si falta algo.
+    function validarRiesgo() {
+      if (!respuestas.previo) return errorEn("Respondé si ya tuviste un infarto, un ACV o una intervención en el corazón.");
+      if (respuestas.previo === "si") return { previo: "si" };
+
+      const edad = leerNumero(inputEdad);
+      const pas  = leerNumero(inputPas);
+      const colesterol = leerNumero(inputColest);
+
+      if (!Number.isFinite(edad)) return errorEn("Escribí tu edad.", inputEdad);
+      if (edad < 40 || edad > 80) {
+        return errorEn("Este cálculo sirve solo entre 40 y 80 años. Consultá con tu médico cómo evaluar tu riesgo.", inputEdad);
+      }
+      if (!respuestas.sexo) return errorEn("Elegí tu sexo.");
+      if (!Number.isFinite(pas)) return errorEn("Escribí tu presión máxima.", inputPas);
+      if (pas < 80 || pas > 250) return errorEn("Revisá la presión: tiene que estar entre 80 y 250 mmHg.", inputPas);
+      if (!Number.isFinite(colesterol)) return errorEn("Escribí tu colesterol total.", inputColest);
+      if (colesterol < 80 || colesterol > 400) {
+        return errorEn("Revisá el colesterol: tiene que estar entre 80 y 400 mg/dL.", inputColest);
+      }
+      if (!respuestas.fuma) return errorEn("Respondé si fumás.");
+      if (!respuestas.diabetes) return errorEn("Respondé si tenés diabetes.");
+
+      return { previo: "no", edad, sexo: respuestas.sexo, pas, colesterol,
+               fuma: respuestas.fuma, diabetes: respuestas.diabetes };
+    }
+
+    // ---------- 9.5 Mostrar el resultado ----------
+    function mostrarResultado(d, fecha) {
+      let categoria, textoPorcentaje, explicacion;
+
+      if (d.previo === "si") {
+        // El modelo no sirve para quien ya tuvo un evento: su riesgo ya se considera alto
+        categoria = { luz: "roja", texto: "Riesgo alto" };
+        textoPorcentaje = "";
+        explicacion = "Como ya tuviste un evento cardiovascular, este cálculo no se aplica: tu riesgo se considera alto " +
+                      "y tu seguimiento lo define tu cardiólogo.";
+      } else {
+        const riesgo = riesgoOMS({
+          edad: d.edad, sexo: d.sexo, pas: d.pas,
+          colesterolMmol: d.colesterol / MG_DL_POR_MMOL,
+          fuma: d.fuma === "si", diabetes: d.diabetes === "si"
+        });
+        const porcentaje = Math.round(riesgo * 100);
+        categoria = categoriaRiesgo(porcentaje);
+        textoPorcentaje = porcentaje < 1 ? "<1 %" : `${porcentaje} %`;
+        explicacion = porcentaje < 1
+          ? "De cada 100 personas con tus mismos valores, menos de 1 podría tener un infarto o un ACV en los próximos 10 años."
+          : `De cada 100 personas con tus mismos valores, unas ${porcentaje} podrían tener un infarto o un ACV en los próximos 10 años.`;
+      }
+
+      // Semáforo
+      resultadoRiesgo.querySelectorAll(".luz").forEach(luz =>
+        luz.classList.toggle("encendida", luz.classList.contains(categoria.luz)));
+      resultadoRiesgo.querySelectorAll(".luz-texto").forEach(t =>
+        t.classList.toggle("activa", t.dataset.luz === categoria.luz));
+
+      const elPorcentaje = document.getElementById("riesgo-porcentaje");
+      elPorcentaje.textContent = textoPorcentaje;
+      elPorcentaje.hidden = !textoPorcentaje;
+      document.getElementById("riesgo-categoria").textContent = categoria.texto;
+      document.getElementById("riesgo-explicacion").textContent = explicacion;
+      document.getElementById("riesgo-fecha").textContent =
+        "Calculado el " + new Date(fecha + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+
+      document.getElementById("riesgo-consejos").replaceChildren(...armarConsejos(d, categoria).map(texto => {
+        const li = document.createElement("li");
+        li.textContent = texto;
+        return li;
+      }));
+
+      resultadoRiesgo.hidden = false;
+    }
+
+    formRiesgo.addEventListener("submit", e => {
+      e.preventDefault();
+      const datos = validarRiesgo();
+      if (!datos) return;
+
+      const fecha = fechaDeHoy();
+      guardar(CLAVE_RIESGO, { datos, fecha });
+      mostrarResultado(datos, fecha);
+      resultadoRiesgo.scrollIntoView({ behavior: "smooth", block: "start" });
+      resultadoRiesgo.focus({ preventScroll: true });
+    });
+
+    // ---------- 9.6 Arranque: si ya había un cálculo guardado, se muestra ----------
+    (function cargarUltimoCalculo() {
+      const guardado = leer(CLAVE_RIESGO, null);
+      if (!guardado || !guardado.datos) return;
+      const d = guardado.datos;
+      elegirOpcion("previo", d.previo);
+      if (d.previo === "no") {
+        inputEdad.value   = d.edad;
+        inputPas.value    = d.pas;
+        inputColest.value = d.colesterol;
+        elegirOpcion("sexo", d.sexo);
+        elegirOpcion("fuma", d.fuma);
+        elegirOpcion("diabetes", d.diabetes);
+      }
+      mostrarResultado(d, guardado.fecha);
+    })();
   </script>
 </body>
 </html>
