@@ -1,0 +1,14 @@
+# Configuración de Netlify para CardioSegui
+# Solo se publica la carpeta "public" (index.html + logo).
+# Los demás archivos de esta carpeta (scripts, notas) NO se suben al sitio.
+
+[build]
+  publish = "public"
+
+# Encabezados de seguridad básicos para todas las páginas
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"

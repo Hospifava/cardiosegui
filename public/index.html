@@ -5,6 +5,9 @@
   <!-- viewport-fit=cover permite usar el área completa en celulares con "notch" -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="CardioSegui: seguimiento para pacientes cardiológicos del Hospital Dr. René Favaloro. Riesgo cardiovascular, medicación y rehabilitación.">
+  <!-- Ícono de la pestaña (corazón con latido), en SVG dentro del mismo archivo -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e73be' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z'/%3E%3Cpath d='M3.5 12h4l2-3 3 6 2-3h6'/%3E%3C/svg%3E">
   <title>CardioSegui</title>
 
   <style>
@@ -199,6 +202,22 @@
     /* Cualquier elemento con el atributo "hidden" queda oculto */
     [hidden] { display: none !important; }
 
+    /* Celulares angostos (≤ 360 px): se achican un poco los bloques fijos de cada toma
+       para dejarle más lugar al nombre del medicamento */
+    @media (max-width: 360px) {
+      main { padding-left: 12px; padding-right: 12px; }
+      .toma { gap: 10px; padding: 12px 10px 12px 12px; }
+      .toma-hora { min-width: 50px; font-size: 19px; }
+      .check { width: 52px; height: 52px; }
+      .med { padding: 12px 6px 12px 14px; gap: 6px; }
+      .med .boton-icono { width: 44px; }
+    }
+
+    /* Si el usuario pidió menos movimiento en su celular, se apagan las animaciones */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
     /* =========================================================
        4b. MI MEDICACIÓN
        ========================================================= */
@@ -285,8 +304,9 @@
       flex-direction: column;
     }
 
-    .toma-info strong, .med-info strong { font-size: 18px; overflow-wrap: anywhere; line-height: 1.3; }
-    .toma-info span,   .med-info span   { font-size: 15px; color: var(--texto-suave); overflow-wrap: anywhere; }
+    /* hyphens: corta las palabras largas con guion (en español, gracias a lang="es"), no a mitad de sílaba */
+    .toma-info strong, .med-info strong { font-size: 18px; overflow-wrap: break-word; hyphens: auto; line-height: 1.3; }
+    .toma-info span,   .med-info span   { font-size: 15px; color: var(--texto-suave); overflow-wrap: break-word; hyphens: auto; }
 
     .estado { font-style: normal; font-size: 13px; font-weight: 700; margin-top: 2px; }
     .estado:empty { display: none; }
@@ -653,13 +673,15 @@
 
     .grafico-encabezado {
       display: flex;
+      flex-wrap: wrap;               /* en pantallas angostas el resumen baja debajo del título */
       justify-content: space-between;
       align-items: baseline;
-      gap: 10px;
+      gap: 2px 10px;
       padding: 0 4px;
     }
 
-    .grafico-encabezado span { font-size: 15px; color: var(--texto-suave); text-align: right; }
+    .grafico-encabezado h3   { white-space: nowrap; }
+    .grafico-encabezado span { font-size: 15px; color: var(--texto-suave); }
 
     #rehab-grafico svg { display: block; width: 100%; height: auto; margin-top: 8px; }
 
@@ -824,7 +846,8 @@
 
     <!-- ===================== LOGO DEL HOSPITAL ===================== -->
     <div class="barra-logo">
-      <img src="logo-favaloro.png" alt="Hospital General de Agudos Dr. René Favaloro">
+      <!-- width/height: el navegador reserva el lugar antes de cargar la imagen (no "salta" la pantalla) -->
+      <img src="logo-favaloro.png" alt="Hospital General de Agudos Dr. René Favaloro" width="425" height="67">
     </div>
 
     <!-- ===================== ENCABEZADO ===================== -->
@@ -1200,11 +1223,16 @@
       }
     }
 
+    // Si el navegador no deja guardar (modo privado, almacenamiento lleno o bloqueado), avisa una sola vez
+    let avisoGuardadoMostrado = false;
     function guardar(clave, valor) {
       try {
         localStorage.setItem(clave, JSON.stringify(valor));
       } catch (e) {
-        alert("No se pudieron guardar los datos en este navegador.");
+        if (!avisoGuardadoMostrado) {
+          avisoGuardadoMostrado = true;
+          alert("No se pudieron guardar los datos en este navegador. Si estás en modo privado o incógnito, abrí la app en una ventana normal.");
+        }
       }
     }
 
@@ -1229,7 +1257,9 @@
       const limite = new Date();
       limite.setDate(limite.getDate() - 60);
       const claveLimite = claveFecha(limite);
-      Object.keys(tomas).forEach(dia => { if (dia < claveLimite) delete tomas[dia]; });
+      const viejos = Object.keys(tomas).filter(dia => dia < claveLimite);
+      if (!viejos.length) return;   // nada que borrar: no escribe (evita avisos al abrir la app)
+      viejos.forEach(dia => delete tomas[dia]);
       guardar(CLAVE_TOMAS, tomas);
     }
 
