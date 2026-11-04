@@ -27,7 +27,8 @@
       --borde:       #e3e8ef;
       --verde:       #2e9d6a;   /* toma tomada */
       --naranja:     #c46a12;   /* toma atrasada */
-      --peligro:     #c0392b;   /* eliminar / errores */
+      --peligro:     #c0392b;   /* eliminar / errores / "mal" */
+      --ambar:       #b7791f;   /* sensación "regular" */
 
       --radio:       18px;
       --sombra:      0 4px 18px rgba(36, 44, 79, 0.08);
@@ -364,6 +365,153 @@
     .vacio h2 { font-size: 20px; }
 
     /* =========================================================
+       4d. MI REHABILITACIÓN
+       ========================================================= */
+    .registro h3, .tarjeta-grafico h3 { font-size: 19px; }
+
+    .registro .fecha { margin-top: 0; margin-bottom: 14px; }
+
+    .etiqueta-campo { display: block; font-weight: 600; margin: 4px 0 10px; }
+
+    /* Contador de minutos:  [–]  30  [+] */
+    .contador {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .contador button {
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+      border: 2px solid var(--borde);
+      border-radius: 50%;
+      background: var(--fondo);
+      color: var(--primario);
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .contador button:active { transform: scale(0.94); background: var(--primario-claro); }
+
+    .contador-valor { text-align: center; }
+
+    .contador input {
+      width: 110px;
+      border: none;
+      border-bottom: 3px solid var(--borde);
+      background: transparent;
+      color: var(--marino);
+      font-family: inherit;
+      font-size: 42px;
+      font-weight: 700;
+      text-align: center;
+      -moz-appearance: textfield;
+    }
+
+    .contador input::-webkit-outer-spin-button,
+    .contador input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .contador input:focus { outline: none; border-bottom-color: var(--primario); }
+
+    .contador-valor span { display: block; font-size: 15px; color: var(--texto-suave); }
+
+    /* Atajos: 10 · 20 · 30 · 45 · 60 */
+    .atajos { display: flex; gap: 8px; margin: 14px 0 22px; }
+
+    .atajos button {
+      flex: 1;
+      min-height: 46px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primario-claro);
+      color: var(--primario-oscuro);
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Caritas: Bien / Regular / Mal */
+    .caritas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+    .carita {
+      min-height: 104px;
+      border: 2px solid var(--borde);
+      border-radius: 16px;
+      background: var(--blanco);
+      color: var(--texto-suave);
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .carita svg { width: 46px; height: 46px; color: var(--c); }
+    .carita:active { transform: scale(0.97); }
+
+    .carita.bien    { --c: var(--verde);   --c-claro: #e8f6ef; }
+    .carita.regular { --c: var(--ambar);   --c-claro: #fbf3e4; }
+    .carita.mal     { --c: var(--peligro); --c-claro: #fdecea; }
+
+    .carita[aria-checked="true"] { border-color: var(--c); background: var(--c-claro); color: var(--texto); border-width: 3px; }
+
+    .aviso {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-left: 5px solid var(--peligro);
+      border-radius: 12px;
+      background: #fdecea;
+      color: #7a2318;
+      font-size: 16px;
+    }
+
+    .guardado-ok { margin-top: 10px; text-align: center; color: var(--verde); font-weight: 700; }
+    .guardado-ok:empty { display: none; }
+
+    /* Tarjeta del gráfico */
+    .tarjeta-grafico {
+      margin-top: 16px;
+      background: var(--blanco);
+      border-radius: var(--radio);
+      box-shadow: var(--sombra);
+      padding: 18px 14px 16px;
+    }
+
+    .grafico-encabezado {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      padding: 0 4px;
+    }
+
+    .grafico-encabezado span { font-size: 15px; color: var(--texto-suave); text-align: right; }
+
+    #rehab-grafico svg { display: block; width: 100%; height: auto; margin-top: 8px; }
+
+    #rehab-grafico .grilla  { stroke: var(--borde); stroke-width: 1; }
+    #rehab-grafico .eje     { font-size: 11px; fill: var(--texto-suave); }
+    #rehab-grafico .dia     { font-size: 12px; fill: var(--texto-suave); font-weight: 600; }
+    #rehab-grafico .dia.hoy { fill: var(--marino); font-weight: 700; }
+    #rehab-grafico .barra   { fill: var(--primario); }
+    #rehab-grafico .sin-dato{ fill: var(--borde); }
+    #rehab-grafico .fondo-sel { fill: var(--primario-claro); }
+    #rehab-grafico .zona    { fill: transparent; cursor: pointer; }
+    #rehab-grafico .zona:focus { outline: none; }
+    #rehab-grafico .zona:focus-visible { stroke: var(--primario); stroke-width: 2; }
+
+    .detalle-dia { margin-top: 6px; text-align: center; font-size: 16px; min-height: 24px; }
+
+    /* =========================================================
        4c. FORMULARIO (hoja que sube desde abajo)
        ========================================================= */
     .hoja-fondo {
@@ -587,20 +735,59 @@
 
       <!-- Sección 3: Mi rehabilitación -->
       <section id="rehabilitacion" class="seccion">
-        <div class="tarjeta">
-          <div class="icono-grande">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="13" cy="4" r="2"/>
-              <path d="M7 21l3-6 3 2v5"/>
-              <path d="M10 15l1-6 4 3 3 1"/>
-              <path d="M11 9l-4 1-1 3"/>
-            </svg>
+
+        <!-- Registro del día -->
+        <form class="resumen registro" id="form-rehab" novalidate>
+          <h3>Registro de hoy</h3>
+          <p class="fecha" id="rehab-fecha"></p>
+
+          <label class="etiqueta-campo" for="rehab-minutos">Minutos de caminata</label>
+          <div class="contador">
+            <button type="button" id="rehab-menos" aria-label="Restar 5 minutos">–</button>
+            <div class="contador-valor">
+              <input id="rehab-minutos" type="number" inputmode="numeric" min="0" max="300" step="5" value="0">
+              <span>minutos</span>
+            </div>
+            <button type="button" id="rehab-mas" aria-label="Sumar 5 minutos">+</button>
           </div>
-          <span class="etiqueta">Próximamente</span>
-          <h2>Mi rehabilitación</h2>
-          <p>Muy pronto vas a poder seguir tus ejercicios y tu progreso de rehabilitación.</p>
-          <button class="boton" disabled>Empezar sesión</button>
+
+          <div class="atajos" id="rehab-atajos">
+            <button type="button" data-min="10">10</button>
+            <button type="button" data-min="20">20</button>
+            <button type="button" data-min="30">30</button>
+            <button type="button" data-min="45">45</button>
+            <button type="button" data-min="60">60</button>
+          </div>
+
+          <span class="etiqueta-campo" id="rehab-sensacion-titulo">¿Cómo te sentiste?</span>
+          <!-- Los íconos de las caritas los agrega el JavaScript -->
+          <div class="caritas" role="radiogroup" aria-labelledby="rehab-sensacion-titulo">
+            <button type="button" class="carita bien"    role="radio" aria-checked="false" data-valor="bien">Bien</button>
+            <button type="button" class="carita regular" role="radio" aria-checked="false" data-valor="regular">Regular</button>
+            <button type="button" class="carita mal"     role="radio" aria-checked="false" data-valor="mal">Mal</button>
+          </div>
+
+          <!-- Aparece si elige "Mal" -->
+          <div class="aviso" id="rehab-aviso" hidden>
+            Si tuviste <strong>dolor de pecho, falta de aire, mareos o palpitaciones</strong>,
+            avisale a tu médico. Si los síntomas son fuertes o no se van, llamá al <strong>107</strong> o al <strong>911</strong>.
+          </div>
+
+          <p class="error" id="rehab-error" role="alert"></p>
+          <button type="submit" class="boton" id="rehab-guardar">Guardar registro</button>
+          <p class="guardado-ok" id="rehab-ok" aria-live="polite"></p>
+        </form>
+
+        <!-- Gráfico de los últimos 7 días (lo dibuja el JavaScript) -->
+        <div class="tarjeta-grafico">
+          <div class="grafico-encabezado">
+            <h3>Últimos 7 días</h3>
+            <span id="rehab-total"></span>
+          </div>
+          <div id="rehab-grafico"></div>
+          <p class="detalle-dia" id="rehab-detalle" aria-live="polite"></p>
         </div>
+
       </section>
 
     </main>
@@ -973,6 +1160,256 @@
     setInterval(renderMedicacion, 60 * 1000);
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) renderMedicacion();
+    });
+
+
+    // =========================================================
+    // 8. MI REHABILITACIÓN
+    // (usa leer, guardar, claveFecha y fechaDeHoy del bloque 7)
+    // =========================================================
+
+    // ---------- 8.1 Datos ----------
+    // registros: { "2026-11-04": { minutos: 30, sensacion: "bien" } }
+    const CLAVE_REHAB = "cardiosegui.rehabilitacion";
+    let registros = leer(CLAVE_REHAB, {});
+
+    const MAX_MINUTOS = 300;
+
+    const SENSACIONES = {
+      bien:    { texto: "Bien",    color: "var(--verde)" },
+      regular: { texto: "Regular", color: "var(--ambar)" },
+      mal:     { texto: "Mal",     color: "var(--peligro)" }
+    };
+
+    // Caritas en SVG (misma cara, cambia la boca)
+    const BOCAS = {
+      bien:    "M8 14.5c1 1.4 2.3 2 4 2s3-.6 4-2",
+      regular: "M8.5 15.5h7",
+      mal:     "M8 16.5c1-1.4 2.3-2 4-2s3 .6 4 2"
+    };
+
+    // "extra" permite pasarle posición y tamaño cuando se dibuja dentro del gráfico
+    function svgCarita(sensacion, extra = "") {
+      return `<svg ${extra} viewBox="0 0 24 24" fill="none"stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="9" cy="10" r="1" fill="currentColor"/>
+        <circle cx="15" cy="10" r="1" fill="currentColor"/>
+        <path d="${BOCAS[sensacion]}"/>
+      </svg>`;
+    }
+
+    // ---------- 8.2 Formulario del día ----------
+    const formRehab     = document.getElementById("form-rehab");
+    const inputMinutos  = document.getElementById("rehab-minutos");
+    const botonesCarita = document.querySelectorAll(".carita");
+    const avisoMal      = document.getElementById("rehab-aviso");
+    const errorRehab    = document.getElementById("rehab-error");
+    const okRehab       = document.getElementById("rehab-ok");
+
+    let sensacionElegida = null;
+    let diaCargado = null;   // para saber si cambió el día mientras la app estaba abierta
+
+    // Agrega el ícono de carita a cada botón
+    botonesCarita.forEach(b => b.insertAdjacentHTML("afterbegin", svgCarita(b.dataset.valor)));
+
+    // Deja los minutos entre 0 y 300, sin decimales
+    function limitarMinutos(valor) {
+      const n = Math.round(Number(valor));
+      if (!Number.isFinite(n)) return 0;
+      return Math.min(MAX_MINUTOS, Math.max(0, n));
+    }
+
+    function elegirSensacion(valor) {
+      sensacionElegida = valor;
+      botonesCarita.forEach(b => b.setAttribute("aria-checked", String(b.dataset.valor === valor)));
+      avisoMal.hidden = valor !== "mal";
+      errorRehab.textContent = "";
+    }
+
+    // Completa el formulario con lo ya registrado hoy (o lo deja vacío)
+    function cargarRegistroDeHoy() {
+      diaCargado = fechaDeHoy();
+      const registro = registros[diaCargado];
+      inputMinutos.value = registro ? registro.minutos : 0;
+      elegirSensacion(registro ? registro.sensacion : null);
+      okRehab.textContent = "";
+      document.getElementById("rehab-guardar").textContent = registro ? "Actualizar registro" : "Guardar registro";
+      document.getElementById("rehab-fecha").textContent =
+        new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+    }
+
+    // Botones – y + (de a 5 minutos)
+    function sumarMinutos(delta) {
+      const actual = limitarMinutos(inputMinutos.value);
+      // Redondea al múltiplo de 5 más cercano en la dirección del botón
+      const nuevo = delta > 0 ? Math.floor(actual / 5) * 5 + 5 : Math.ceil(actual / 5) * 5 - 5;
+      inputMinutos.value = limitarMinutos(nuevo);
+      okRehab.textContent = "";
+    }
+
+    document.getElementById("rehab-menos").addEventListener("click", () => sumarMinutos(-5));
+    document.getElementById("rehab-mas").addEventListener("click", () => sumarMinutos(5));
+    document.querySelectorAll("#rehab-atajos button").forEach(b => {
+      b.addEventListener("click", () => { inputMinutos.value = b.dataset.min; okRehab.textContent = ""; });
+    });
+    inputMinutos.addEventListener("blur", () => { inputMinutos.value = limitarMinutos(inputMinutos.value); });
+    inputMinutos.addEventListener("input", () => { okRehab.textContent = ""; });
+
+    botonesCarita.forEach(b => b.addEventListener("click", () => {
+      elegirSensacion(b.dataset.valor);
+      okRehab.textContent = "";
+    }));
+
+    formRehab.addEventListener("submit", e => {
+      e.preventDefault();
+      if (!sensacionElegida) {
+        errorRehab.textContent = "Elegí cómo te sentiste.";
+        return;
+      }
+      const minutos = limitarMinutos(inputMinutos.value);
+      inputMinutos.value = minutos;
+
+      const hoy = fechaDeHoy();
+      registros[hoy] = { minutos, sensacion: sensacionElegida };
+      guardar(CLAVE_REHAB, registros);
+
+      document.getElementById("rehab-guardar").textContent = "Actualizar registro";
+      okRehab.textContent = "✓ Registro guardado";
+      diaSeleccionado = hoy;
+      renderGrafico();
+    });
+
+    // ---------- 8.3 Gráfico de barras (SVG) ----------
+    const contGrafico = document.getElementById("rehab-grafico");
+    let diaSeleccionado = fechaDeHoy();   // la barra que muestra su detalle abajo
+
+    // Rectángulo con las esquinas de arriba redondeadas, apoyado en la base
+    function caminoBarra(x, y, ancho, alto) {
+      const r = Math.min(4, alto, ancho / 2);
+      return `M${x},${y + alto} V${y + r} Q${x},${y} ${x + r},${y} H${x + ancho - r} Q${x + ancho},${y} ${x + ancho},${y + r} V${y + alto} Z`;
+    }
+
+    // Últimos 7 días, del más viejo a hoy
+    function ultimos7Dias() {
+      const dias = [];
+      for (let i = 6; i >= 0; i--) {
+        const fecha = new Date();
+        fecha.setDate(fecha.getDate() - i);
+        const clave = claveFecha(fecha);
+        dias.push({ clave, fecha, esHoy: i === 0, registro: registros[clave] || null });
+      }
+      return dias;
+    }
+
+    const nombreDiaCorto = fecha =>
+      fecha.toLocaleDateString("es-AR", { weekday: "short" }).replace(".", "");
+
+    function describirDia(dia) {
+      const nombre = dia.esHoy ? "Hoy"
+        : dia.fecha.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "short" }).replace(".", "");
+      const r = dia.registro;
+      return r ? `${nombre}: ${r.minutos} min · ${SENSACIONES[r.sensacion].texto}` : `${nombre}: sin registro`;
+    }
+
+    function renderGrafico() {
+      const dias = ultimos7Dias();
+      if (!dias.some(d => d.clave === diaSeleccionado)) diaSeleccionado = dias[6].clave;
+
+      // Resumen de la semana
+      const conRegistro = dias.filter(d => d.registro);
+      const total = conRegistro.reduce((suma, d) => suma + d.registro.minutos, 0);
+      document.getElementById("rehab-total").textContent =
+        `${total} min · ${conRegistro.length} de 7 días`;
+
+      // Medidas del dibujo (el SVG se estira al ancho de la pantalla)
+      const ANCHO = 320, ALTO = 200;
+      const m = { arriba: 30, derecha: 6, abajo: 28, izquierda: 30 };
+      const anchoUtil = ANCHO - m.izquierda - m.derecha;
+      const altoUtil  = ALTO - m.arriba - m.abajo;
+      const anchoCol  = anchoUtil / 7;
+      const anchoBarra = Math.min(26, anchoCol * 0.55);
+      const base = m.arriba + altoUtil;
+
+      // Tope del eje: múltiplo de 15, mínimo 30 minutos
+      const maximo = Math.max(30, ...dias.map(d => d.registro ? d.registro.minutos : 0));
+      const tope = Math.ceil(maximo / 15) * 15;
+      const yDe = v => base - (v / tope) * altoUtil;
+
+      let svg = "";
+
+      // Líneas guía y números del eje (0, 1/3, 2/3 y tope)
+      [0, tope / 3, (tope * 2) / 3, tope].forEach(v => {
+        const y = yDe(v);
+        svg += `<line class="grilla" x1="${m.izquierda}" x2="${ANCHO - m.derecha}" y1="${y}" y2="${y}"/>`;
+        svg += `<text class="eje" x="${m.izquierda - 6}" y="${y + 4}" text-anchor="end">${Math.round(v)}</text>`;
+      });
+
+      dias.forEach((dia, i) => {
+        const x0 = m.izquierda + i * anchoCol;
+        const cx = x0 + anchoCol / 2;
+        const r  = dia.registro;
+        const seleccionado = dia.clave === diaSeleccionado;
+
+        // Fondo suave detrás del día seleccionado
+        if (seleccionado) {
+          svg += `<rect class="fondo-sel" x="${x0 + 2}" y="${m.arriba - 26}" width="${anchoCol - 4}" height="${altoUtil + 26 + 24}" rx="8"/>`;
+        }
+
+        if (r) {
+          const yTope = yDe(r.minutos);
+          if (r.minutos > 0) {
+            svg += `<path class="barra" d="${caminoBarra(cx - anchoBarra / 2, yTope, anchoBarra, base - yTope)}"/>`;
+          }
+          // Carita arriba de la barra (forma + color = cómo se sintió)
+          svg += svgCarita(r.sensacion,
+            `x="${cx - 9}" y="${yTope - 22}" width="18" height="18" style="color:${SENSACIONES[r.sensacion].color}"`);
+        } else {
+          // Sin registro: rayita gris en la base
+          svg += `<rect class="sin-dato" x="${cx - 6}" y="${base - 3}" width="12" height="3" rx="1.5"/>`;
+        }
+
+        // Nombre del día
+        svg += `<text class="dia${dia.esHoy ? " hoy" : ""}" x="${cx}" y="${base + 18}" text-anchor="middle">${dia.esHoy ? "Hoy" : nombreDiaCorto(dia.fecha)}</text>`;
+
+        // Zona tocable (toda la columna, más grande que la barra)
+        svg += `<rect class="zona" data-clave="${dia.clave}" x="${x0}" y="0" width="${anchoCol}" height="${ALTO}"
+                  tabindex="0" role="button" aria-label="${describirDia(dia)}"/>`;
+      });
+
+      contGrafico.innerHTML =
+        `<svg viewBox="0 0 ${ANCHO} ${ALTO}" role="group" aria-label="Minutos de caminata de los últimos 7 días">${svg}</svg>`;
+
+      // Tocar (o Enter/Espacio) una columna muestra su detalle
+      contGrafico.querySelectorAll(".zona").forEach(zona => {
+        const elegir = () => {
+          diaSeleccionado = zona.dataset.clave;
+          renderGrafico();
+          contGrafico.querySelector(`.zona[data-clave="${diaSeleccionado}"]`).focus({ preventScroll: true });
+        };
+        zona.addEventListener("click", elegir);
+        zona.addEventListener("keydown", e => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); elegir(); }
+        });
+      });
+
+      document.getElementById("rehab-detalle").textContent =
+        describirDia(dias.find(d => d.clave === diaSeleccionado));
+    }
+
+    // ---------- 8.4 Arranque ----------
+    function renderRehabilitacion() {
+      // Si cambió el día, el formulario arranca de nuevo; si no, se respeta lo que se está escribiendo
+      if (diaCargado !== fechaDeHoy()) {
+        cargarRegistroDeHoy();
+        diaSeleccionado = fechaDeHoy();
+      }
+      renderGrafico();
+    }
+
+    renderRehabilitacion();
+    setInterval(renderRehabilitacion, 60 * 1000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) renderRehabilitacion();
     });
   </script>
 </body>
