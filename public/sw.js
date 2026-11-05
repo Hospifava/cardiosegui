@@ -6,7 +6,7 @@
 // Así los celulares que ya la tienen instalada descargan la versión nueva.
 // =========================================================
 
-const VERSION = "cardiosegui-v2";
+const VERSION = "cardiosegui-v3";
 
 // Archivos de la app que se guardan al instalar
 const ARCHIVOS = [
