@@ -1522,6 +1522,7 @@
       if (!confirm(`¿Eliminar "${med.nombre}" de tu lista?`)) return;
       medicamentos = medicamentos.filter(m => m.id !== med.id);
       guardar(CLAVE_MEDS, medicamentos);
+      Recordatorios.cancelar(med.id);   // en la app de Android: deja de avisar
       renderMedicacion();
     }
 
@@ -1599,15 +1600,18 @@
       if (!dosis)           return mostrarError("Escribí la dosis.", inputDosis);
       if (!horarios.length) return mostrarError("Agregá al menos un horario.", contHorarios.querySelector("input"));
 
+      let guardado;
       if (editandoId) {
         // Editar: se conserva el id, así las tomas ya marcadas en horarios que no cambiaron se mantienen
-        medicamentos = medicamentos.map(m => m.id === editandoId ? { ...m, nombre, dosis, horarios } : m);
+        medicamentos = medicamentos.map(m => m.id === editandoId ? (guardado = { ...m, nombre, dosis, horarios }) : m);
       } else {
-        medicamentos.push({ id: crearId(), nombre, dosis, horarios });
+        guardado = { id: crearId(), nombre, dosis, horarios };
+        medicamentos.push(guardado);
       }
       guardar(CLAVE_MEDS, medicamentos);
       cerrarFormulario();
       renderMedicacion();
+      Recordatorios.programar(guardado);   // en la app de Android: un aviso diario por horario
     });
 
     document.getElementById("btn-abrir-form").addEventListener("click", () => abrirFormulario());
@@ -1622,9 +1626,138 @@
       if (e.key === "Escape" && !fondoForm.hidden) cerrarFormulario();
     });
 
-    // ---------- 7.7 Arranque ----------
+    // ---------- 7.7 Recordatorios (solo en la app de Android) ----------
+    // En la app (Capacitor) cada horario de cada medicamento es una notificación diaria.
+    // En el navegador no hace nada: no carga nada extra ni muestra errores.
+    // Guarda qué notificaciones son de cada medicamento, para poder cambiarlas o cancelarlas:
+    //   { siguienteId: 7, porMed: { "<id del medicamento>": [1, 2] }, exactaPedida: true, avisoDenegado: true }
+    const CLAVE_RECORDATORIOS = "cardiosegui.recordatorios";
+
+    const Recordatorios = (() => {
+      const enApp = typeof window.Capacitor?.isNativePlatform === "function" && window.Capacitor.isNativePlatform();
+      const estado = { siguienteId: 1, porMed: {}, ...leer(CLAVE_RECORDATORIOS, {}) };
+      const guardarEstado = () => guardar(CLAVE_RECORDATORIOS, estado);
+      let pluginListo = null;
+
+      // Carga el plugin de notificaciones (una sola vez). Devuelve { LN }; en el navegador, LN no existe.
+      // Ojo: el plugin se pasa "envuelto" en { LN } porque responde a cualquier método, incluso
+      // a .then(), y una promesa que devuelve algo con .then() se queda esperándolo.
+      function cargarPlugin() {
+        if (!enApp) return Promise.resolve({});
+        if (!pluginListo) {
+          pluginListo = new Promise(resolver => {
+            const registrar = () => resolver(typeof Capacitor.registerPlugin === "function"
+              ? { LN: Capacitor.registerPlugin("LocalNotifications") } : {});
+            if (typeof Capacitor.registerPlugin === "function") return registrar();
+            // capacitor.js lo agrega la app de Android (npm run copiar-apps); en la web no existe
+            const script = document.createElement("script");
+            script.src = "/capacitor.js";
+            script.onload = registrar;
+            script.onerror = () => resolver({});
+            document.head.appendChild(script);
+          }).then(async ({ LN }) => {
+            // Canal "Medicación" con prioridad alta: el aviso aparece arriba de la pantalla y suena
+            if (LN) await LN.createChannel({ id: "medicacion", name: "Recordatorios de medicación",
+              description: "Avisos para tomar tus medicamentos", importance: 5, visibility: 1, vibration: true }).catch(() => {});
+            return { LN };
+          });
+        }
+        return pluginListo;
+      }
+
+      // ¿Se pueden mostrar notificaciones? Si "preguntar" es true y todavía no hay permiso,
+      // muestra el cartel de Android para pedirlo (Android 13 o superior).
+      async function hayPermiso(LN, preguntar) {
+        let { display } = await LN.checkPermissions();
+        if (display !== "granted" && preguntar) ({ display } = await LN.requestPermissions());
+        if (display !== "granted" && preguntar && !estado.avisoDenegado) {
+          estado.avisoDenegado = true;
+          guardarEstado();
+          alert("Sin permiso de notificaciones no podemos avisarte cuándo tomar tus medicamentos.\n\nPodés activarlo en Ajustes > Aplicaciones > HospiFava > Notificaciones.");
+        }
+        return display === "granted";
+      }
+
+      // ¿Usar alarma exacta (que suene a la hora justa)? Desde Android 12 hay que permitirlo en Ajustes.
+      // Solo se pide una vez; si no se permite, el aviso igual llega, pero puede demorarse unos minutos.
+      async function usarAlarmaExacta(LN, preguntar) {
+        try {
+          if ((await LN.checkExactNotificationSetting()).exact_alarm === "granted") return true;
+        } catch (e) {
+          return false;
+        }
+        if (!preguntar || estado.exactaPedida) return false;
+        estado.exactaPedida = true;
+        guardarEstado();
+        // Si acepta, el plugin abre la pantalla "Alarmas y recordatorios" de Ajustes
+        return confirm("Para que el aviso llegue a la hora justa, en la pantalla que se abre activá «Permitir alarmas y recordatorios».");
+      }
+
+      async function cancelarDe(LN, idMed) {
+        const ids = estado.porMed[idMed] || [];
+        delete estado.porMed[idMed];
+        guardarEstado();
+        if (ids.length) await LN.cancel({ notifications: ids.map(id => ({ id })) });
+      }
+
+      // Programa (o reprograma) los avisos de un medicamento: uno por día en cada horario
+      async function programar(med, preguntar = true) {
+        const { LN } = await cargarPlugin();
+        if (!LN) return;
+        try {
+          await cancelarDe(LN, med.id);   // si se editó, borra los avisos con los horarios viejos
+          if (!(await hayPermiso(LN, preguntar))) return;
+          const exacta = await usarAlarmaExacta(LN, preguntar);
+          const avisos = med.horarios.map(hora => {
+            const [h, m] = hora.split(":").map(Number);
+            return {
+              id: estado.siguienteId++,
+              title: `💊 Hora de tomar ${med.nombre} ${med.dosis}`.trim(),
+              body: "Cuando la tomes, marcala en «Mi medicación».",
+              channelId: "medicacion",
+              schedule: { on: { hour: h, minute: m }, allowWhileIdle: true },   // "on" = todos los días a esa hora
+              isExactNotification: exacta,
+              extra: { idMed: med.id, hora }
+            };
+          });
+          estado.porMed[med.id] = avisos.map(a => a.id);
+          guardarEstado();
+          await LN.schedule({ notifications: avisos });
+        } catch (error) {
+          console.warn("No se pudo programar el recordatorio:", error);
+        }
+      }
+
+      async function cancelar(idMed) {
+        const { LN } = await cargarPlugin();
+        if (!LN) return;
+        try { await cancelarDe(LN, idMed); }
+        catch (error) { console.warn("No se pudo cancelar el recordatorio:", error); }
+      }
+
+      // Al abrir la app: deja los avisos iguales a la lista (sin pedir permisos)
+      async function sincronizar(lista) {
+        const { LN } = await cargarPlugin();
+        if (!LN) return;
+        try {
+          for (const idMed of Object.keys(estado.porMed)) {
+            if (!lista.some(m => m.id === idMed)) await cancelarDe(LN, idMed);
+          }
+          if (!lista.length) { estado.siguienteId = 1; guardarEstado(); return; }
+          if ((await LN.checkPermissions()).display !== "granted") return;
+          for (const med of lista) await programar(med, false);
+        } catch (error) {
+          console.warn("No se pudieron revisar los recordatorios:", error);
+        }
+      }
+
+      return { enApp, programar, cancelar, sincronizar };
+    })();
+
+    // ---------- 7.8 Arranque ----------
     limpiarTomasViejas();
     renderMedicacion();
+    Recordatorios.sincronizar(medicamentos);
 
     // Actualiza cada minuto (para "Atrasada") y al volver a la app (por si cambió el día)
     setInterval(renderMedicacion, 60 * 1000);
