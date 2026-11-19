@@ -1715,7 +1715,7 @@
               title: `💊 Hora de tomar ${med.nombre} ${med.dosis}`.trim(),
               body: "Cuando la tomes, marcala en «Mi medicación».",
               channelId: "medicacion",
-              schedule: { on: { hour: h, minute: m }, allowWhileIdle: true },   // "on" = todos los días a esa hora
+              schedule: { on: { hour: h, minute: m, second: 0 }, allowWhileIdle: true },   // "on" = todos los días a esa hora en punto
               isExactNotification: exacta,
               extra: { idMed: med.id, hora }
             };
